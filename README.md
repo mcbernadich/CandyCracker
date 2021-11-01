@@ -4,7 +4,7 @@ Hello! This software has been made to *crack* the secrets of binary systems disc
 
 ## What is this repo?
 
-This is a set of tools that allow a user to make preliminary estimates of orbital parameters out of barycentric data (epochs,periods,accelerations), plot orbital solutions and more! Useful for when you have a set of difficult points from a tricky pulsar thaat you want to solve.
+This is a set of tools that allow a user to make preliminary estimates of orbital parameters out of barycentric data (epochs,periods,accelerations), plot orbital solutions and more! Useful for when you have a set of difficult points from a tricky pulsar thaat you want to solve. To add examples for the usage.
 
 ## What is NOT this repo?
 
