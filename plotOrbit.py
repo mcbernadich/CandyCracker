@@ -72,7 +72,7 @@ def read_ephemeris(file):
 
 parser=argparse.ArgumentParser(description="Take in barycentric data at each epoch, an orbital model, and plot for your eyes to enjoy.")
 parser.add_argument("data",help="File with columns of 1) MJD, 2) period and 3) uncertainty (or 3) derivatives, 4) derivative uncertainty).")
-parser.add_argument("ephemeris",help="Fitorbit-format ephemeris. If loaded, the data won't be fitted.")
+parser.add_argument("--ephemeris",help="Fitorbit-format ephemeris.")
 parser.add_argument("-p","--period",help="Units of period. Default: 'ms'.",choices=["s","ms","s-1"])
 parser.add_argument("-d","--derivative",help="Units of derivative. Default: 's/s'.",choices=["s/s","s-2","m/s2"])
 parser.add_argument("-r","--range",help="Range of data lines to be read 'min:max'. Default: '0:inf'.")
