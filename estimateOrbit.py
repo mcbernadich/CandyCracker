@@ -29,6 +29,8 @@ def fit_ellipse(periods,derivatives):
 
 def fit_folding(epochs,periods,errors,period_range="none"):
 
+	import time
+
 	sorted_epochs=np.sort(epochs)
 	interval=sorted_epochs[-1]-sorted_epochs[0]
 	if period_range != "none":
@@ -39,33 +41,88 @@ def fit_folding(epochs,periods,errors,period_range="none"):
 		last_porb=interval
 	smallest_interval=np.min(sorted_epochs[1:]-sorted_epochs[:-1])
 	epochs=epochs-sorted_epochs[0]
+	sorting_old=np.argsort(epochs)
 
 	print("Searching for best orbital period in between {} and {} days...".format(trial_porb,last_porb))
 	print("")
 
 	roughness=[]
 	trial_porbs=[]
+	unsolvable_knots=0
+	correction_attempts=0
 	i=0
 
+	start=time.time()
+
+	# Start Kernel.
+
 	while trial_porb <= last_porb:
-		if i/10000==i//10000:
-			print("Current period: {} days. Current step: {} days".format(trial_porb,min(0.33333*smallest_interval*trial_porb/interval,1e-2*(trial_porb**2)/(2*np.pi*interval))))
+
+		if np.mod(i,10000)==0:
+			print("Current period: {} days. Current step: {} days".format(trial_porb,1e-2*(trial_porb**2)/(2*np.pi*interval)))
 		folded_epochs=epochs-(epochs//trial_porb)*trial_porb
-		folded_periods=periods[np.argsort(folded_epochs)]
-#		folded_errors=errors[np.argsort(folded_epochs)]
-#		error_sumation=np.sqrt(np.square(np.roll(folded_errors,-1))+np.square(folded_errors))
-		folded_phases=np.sort(folded_epochs)/trial_porb
+		sorting=np.argsort(folded_epochs)
+
+		# Consistency check.
+		if (sorting!=sorting_old).any() and i!=0:
+			iterations=0
+			good_to_go=False
+			while good_to_go==False and iterations<=30:
+				likelihood=(sorting==sorting_old)
+				# First, check if a single alone can explain the shift (first point always the same, therefore excluded).
+				if (np.roll(sorting[1:],1)==sorting_old[1:]).all():
+					good_to_go=True					
+				# If not, check if a single permutation can explain the difference.
+				elif likelihood[np.where(likelihood==False)].size==2:
+					good_to_go=True
+				# If none of the previous, start going back and forth with the steps until one of the preious holds.
+				if (sorting!=sorting_old).any() and good_to_go==False:
+					step=step/2
+					trial_porb=trial_porb-step
+					folded_epochs=epochs-(epochs//trial_porb)*trial_porb
+					sorting=np.argsort(folded_epochs)
+				if (sorting==sorting_old).all() and good_to_go==False:
+					step=step/2
+					trial_porb=trial_porb+step
+					folded_epochs=epochs-(epochs//trial_porb)*trial_porb
+					sorting=np.argsort(folded_epochs)
+				iterations=iterations+1
+			if iterations>1 and good_to_go==True:
+				correction_attempts=correction_attempts+1
+			if iterations==31 and good_to_go==False:
+				step=old_step
+				trial_porb=trial_porb_old+step
+				folded_epochs=epochs-(epochs//trial_porb)*trial_porb
+				sorting=np.argsort(folded_epochs)
+				correction_attempts=correction_attempts+1
+				unsolvable_knots=unsolvable_knots+1
+		# -----------------------------------------------------------------------
+		
+		folded_periods=periods[sorting]
+		folded_phases=folded_epochs[sorting]/trial_porb
 		phase_difference=np.roll(folded_phases,-1)-folded_phases
 		phase_difference[ phase_difference <= 0 ] = phase_difference[ phase_difference <= 0 ] + 1
 		roughness.append(np.sum((((np.roll(folded_periods,-1)-folded_periods)/phase_difference)**2)))
-#		roughness.append(np.sum((((np.roll(folded_periods,-1)-folded_periods)/(phase_difference*error_sumation))**2)))
 		trial_porbs.append(trial_porb)
-		trial_porb=trial_porb+min(0.1*smallest_interval*trial_porb/interval,1e-2*(trial_porb**2)/(2*np.pi*interval))
+		# For consistency check
+		trial_porb_old=trial_porb
+		sorting_old=sorting
+		step=1e-2*(trial_porb**2)/(2*np.pi*interval)
+		old_step=step
+		# -------------------------------------------------------------------------
+		trial_porb=trial_porb+step
 		i=i+1
+
+	# End Kernel.
+
+	print("Run time: {} s".format(time.time()-start))
 
 	roughness=np.array(roughness)
 	trial_porbs=np.array(trial_porbs)
 	print("Total number of trials: {}".format(np.size(roughness)))
+	print("Number of correction attempts: {}".format(correction_attempts))
+	print("Number of unsolvable knots: {}".format(unsolvable_knots))
+	print("Succesful corrections: {}".format(correction_attempts-unsolvable_knots))
 
 	best_porb=trial_porbs[np.argmin(roughness)]
 
