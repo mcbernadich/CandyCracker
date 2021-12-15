@@ -17,31 +17,31 @@ A tempo2 installation if you use dracula2.py.
 
 ##Contents:
 
-###```estimateOrbit.py```:
+###estimateOrbit.py:
 
 This snippet contains three methods to estimate the orbital period of a binary given barycentric measurements of period/accelerations. In particular:
 
-     - The ellipse method from Freire, Kramer & Lyne (2000).
+- The ellipse method from Freire, Kramer & Lyne (2000).
 
-     - The roughness estimate from Bhattacharyya & Nityananda (2008). This particular implementation has had very significant contributions form Ewan Barr, Shalini Sengupta and David Champion. It implements an additional normalization by orbital phase during the computation of the roughness value and a check of permutations during folding to avoid skiping steps. In the future, it may also include the period errors in the analysis as well.
+- The roughness estimate from Bhattacharyya & Nityananda (2008). This particular implementation has had very significant contributions form Ewan Barr, Shalini Sengupta and David Champion. It implements an additional normalization by orbital phase during the computation of the roughness value and a check of permutations during folding to avoid skiping steps. In the future, it may also include the period errors in the analysis as well.
 
-     - A Lomb-Scargle periotrogram periodicity search.
+- A Lomb-Scargle periotrogram periodicity search.
 
 The required packages are: numpy, matplotlib and gatspy (for the Lomb-Scargle periotogram).
 
-###```plotOrbit.py```:
+###plotOrbit.py:
 
 This one also takes barycentric data, plus a simple timing model (F0/P0 + Keplerian parameters) and plots the data along an analytical solution of the orbit in the period-phase, period-time or period-acceleration spaces. In the future, it may include a predictor mode to simulate data points in those spaces as well. Required packages: numpy and matplotlib.
 
-###```estimateFromKepler.py```:
+###estimateFromKepler.py:
 
 This snipped takes in Keplerian parameters from an orbital model and computes the mass function and estimates the extent of possible post-Keplerian effects. Useful to asses the nature of the system and the measurability of parameters at an early stage. Required packages: numpy, scipy and matplotlib
 
-###```dracula2.py```:
+###dracula2.py:
 
 I was tempted to call this snipped ```phaseConnect.py```, as it is a code to achieve a phase-connected timing solution from an initial ```tempo2``` parameter file and a set of ToAs. However, this can also be described as a tempo2 implementation of the original ```Dracula``` algorithm implemented in bash for ```tempo``` (https://github.com/pfreire163/Dracula, Freire & Ridolfi 2018), therefore it is now called ```dracula2.py```. As such, it works very much in the very same way. Requirements: numpy and an installation of ```tempo2```. Only the basic ```tempo2``` software is called through the subprocess module, so no extra packages or plug-ons are needed.
 
-###```constrainMass.py```:
+###constrainMass.py:
 
 This -still incomplete- snippet contrains the masses of your system given Keplerian and post-Keplerian parameters. It doesn't draw full mass and inclination diagrams, it just gives some values assuming general relativity. It only requires numpy.
 
