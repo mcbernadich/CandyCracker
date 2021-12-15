@@ -39,7 +39,7 @@ This snipped takes in Keplerian parameters from an orbital model and computes th
 
 ### dracula2.py:
 
-I was tempted to call this snipped ```phaseConnect.py```, as it is a code to achieve a phase-connected timing solution from an initial ```tempo2``` parameter file and a set of ToAs. However, this can also be described as a tempo2 implementation of the original ```Dracula``` algorithm implemented in bash for ```tempo``` (https://github.com/pfreire163/Dracula, Freire & Ridolfi 2018), therefore it is now called ```dracula2.py```. As such, it works very much in the very same way. Requirements: numpy and an installation of ```tempo2```. Only the basic ```tempo2``` software is called through the subprocess module, so no extra packages or plug-ons are needed.
+I was tempted to call this snipped ```phaseConnect.py```, as it is a code to achieve a phase-connected timing solution from an initial ```tempo2``` parameter file and a set of ToAs. However, this can also be described as a ```tempo2``` implementation of the original ```Dracula``` algorithm implemented in bash for ```tempo``` (https://github.com/pfreire163/Dracula, Freire & Ridolfi 2018). Therefore, it is now called ```dracula2.py```. As such, it works very much in the very same way. Requirements: numpy and an installation of ```tempo2```. Only the basic ```tempo2``` software is called through the subprocess module, so no extra packages or plug-ins are needed.
 
 ### constrainMass.py:
 
