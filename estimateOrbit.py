@@ -27,7 +27,7 @@ def fit_ellipse(periods,derivatives):
 
 	return (period,p_orb,axis,acc_amp,p_amp,coeff)
 
-def fit_folding(epochs,periods,errors,period_range="none"):
+def fit_roughness(epochs,periods,errors,period_range="none"):
 
 	import time
 
@@ -189,8 +189,9 @@ parser.add_argument("data",help="File with columns of 1) MJD, 2) period and 3) u
 parser.add_argument("-p","--period",help="Units of period. Default: 'ms'.",choices=["s","ms","s-1"])
 parser.add_argument("-d","--derivative",help="Units of derivative. Default: 's/s'.",choices=["s/s","s-2","m/s2"])
 parser.add_argument("-r","--range",help="Range of data lines to be read 'min:max'. Default: '0:inf'.")
-parser.add_argument("-m","--method",help="Method to fit the data with",choices=["ellipse","roughness","Lomb-Scargle"])
+parser.add_argument("-m","--method",help="Method to fit the data with. If not specified, a time series is plotted.",choices=["ellipse","roughness","Lomb-Scargle","folding"])
 parser.add_argument("--period_range",help="Custom orbital period search range in days for -m 'roughness' and 'Lomb-Scargle'. 'min:max' in days")
+parser.add_argument("--folding_period",type=float,help="Custom orbital period to fold with in case of -m 'folding', in days")
 parser.add_argument("-M","--methods",help="Print details about methods.",action="store_true")
 parser.add_argument("-v","--verbose",action="store_true")
 args = parser.parse_args()
@@ -207,6 +208,10 @@ if args.methods:
 	print(" - Lomb-Scargle:")
 	print("   It reads the 1st (MJD) and 2nd (Period) columns of data and computes a Lomb-Scargle diagrame to search the best period in between 1 hour and the duration of the data set. Useful if you don't have good derivative measurements, much faster than the roughness algorithm, but less sensible to highly eccentric orbits.")
 	print("   If '--period_range' is specified, then the orbital period search range is restricted in days to the custom values.")
+	print(" - Folding:")
+	print("   It just folds the series at a chosen orbital period, in case you want to do trial and error yourself.")
+	print("   '--folding_period' must then be specified.")	
+
 	print("")
 	exit()
 
@@ -290,17 +295,22 @@ if fit==True:
 		plot_fit=True
 	elif model == "roughness":
 		if args.period_range:
-			(p_orb,trial_porbs,roughness)=fit_folding(history[0],history[1],history[2],period_range=period_range)
+			(p_orb,trial_porbs,roughness)=fit_roughness(history[0],history[1],history[2],period_range=period_range)
 		else:
-			(p_orb,trial_porbs,roughness)=fit_folding(history[0],history[1],history[2])
+			(p_orb,trial_porbs,roughness)=fit_roughness(history[0],history[1],history[2])
 		plot_fit=True
 	elif model == "Lomb-Scargle":
 		if args.period_range:
 			(p_orb,trial_porbs,ls_power)=fit_LombScargle(history[0],history[1],history[2],period_range=period_range)
 		else:
 			(p_orb,trial_porbs,ls_power)=fit_LombScargle(history[0],history[1],history[2])
+	elif model == "folding":
+		if args.folding_period:
+			p_orb=args.folding_period
+		else:
+			sys.exit("'-m folding': please specify folding period with '--folding_period'.")
 	else:
-		sys.exit("Please state a valid orbit estimation algorithm.")
+		sys.exit("Please state a valid orbit estimation algorithm or specify none for a time series.")
 else:
 	plt.errorbar(history[0]-int(history[0,0]),history[1]*1000,history[2]*1000,fmt="o")
 	plt.ylabel("$P_{bary}$ (ms)")
@@ -369,6 +379,19 @@ elif fit == True and model == "Lomb-Scargle":
 	plt.legend()
 	plt.tight_layout()
 	plt.show()
+
+	epochs=history[0,:]-np.min(history[0,:])
+	folded_epochs=epochs-(epochs//p_orb)*p_orb
+	plt.errorbar(folded_epochs,history[1]*1000,history[2]*1000,fmt="o")
+	plt.plot([],[]," ",label="$P_{orb}=$ "+str(round(p_orb,5))+" d")
+	plt.ylabel("$P_{bary}$ (ms)")
+	plt.xlabel("orbital phase (MJD)")
+	plt.title(args.data.split(".")[0].split("/")[-1])
+	plt.tight_layout()
+	plt.legend()
+	plt.show()
+
+elif fit == True and model == "folding":
 
 	epochs=history[0,:]-np.min(history[0,:])
 	folded_epochs=epochs-(epochs//p_orb)*p_orb
