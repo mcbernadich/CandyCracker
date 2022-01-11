@@ -58,7 +58,7 @@ def read_ephemeris(file):
 			omega=float(line[2:])
 		elif line[:2]=="T0":
 			periastron=float(line[2:])
-	if f0 and p_orb and x and periastron:
+	if f0 and p_orb and x and periastron and ecc and omega:
 		print("Pulsar parameters loaded from {}:".format(file))
 		print("- Pulsar frequency: {} Hz".format(f0))
 		print("- Orbital period: {} days".format(p_orb))
