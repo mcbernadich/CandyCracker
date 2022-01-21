@@ -95,6 +95,8 @@ parser.add_argument("--stig",help="Orthometric amplitude amplitude of saphiro de
 parser.add_argument("-v","--verbose",action="store_true")
 args = parser.parse_args()
 
+print(" ")
+
 if args.ephemeris:
 	(f0,p_orb,x,ecc,omega,periastron)=read_ephemeris(args.ephemeris)
 else:
@@ -115,7 +117,7 @@ else:
 	if args.eccentricity:
 		ecc=args.eccentricity
 		if args.verbose==True:
-			print("Eccentricity: {} ls".format(x))
+			print("Eccentricity: {} ls".format(ecc))
 			print(" ")
 	else:
 		ecc=0
@@ -128,9 +130,9 @@ if args.omdot:
 	domdot=float(args.omdot.split("+/-")[1])
 	if args.verbose==True:
 		print("Constraining from omdot {} º/yr.".format(args.omdot))
-	(mtot,dmot)=periastron_advance_constant(p_orb,ecc,omdot,domdot)
+	(mtot,dmtot)=periastron_advance_constant(p_orb,ecc,omdot,domdot)
 	if args.verbose==True:
-		print("Total mass: {}+/-{} solar masses.".format(mtot,dmot))
+		print("Total mass: {}+/-{} solar masses.".format(mtot,dmtot))
 		print("")
 
 if args.gamma:
@@ -169,6 +171,46 @@ if args.h3 and args.stig:
 
 # Start computing constraints like a madman:
 
+if args.omdot:
+
+	# Estimate range of masses for pulsar and companion if i=90º.
+
+	print("Masses from periastron advance an mass function")
+	print(" ")
+	print("Mtot= {} - {} solar masses".format(mtot-dmtot,mtot+dmtot))
+	print(" ")
+
+	mcomp=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)*(mtot**2)/1.9891e30)**(1/3)
+	dmcomp=(2*dmtot*mtot**(-1/3)/3)*(299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)/1.9891e30)**(1/3))
+	mpulsar=mtot-mcomp
+	dmpulsar=np.sqrt(dmtot**2+dmcomp**2)
+
+	print("At i= 90º")
+	print("Mcomp= {} - {} solar masses".format(mcomp-dmcomp,mcomp+dmcomp))
+	print("Mpulsar= {} - {} solar masses".format(mpulsar-dmpulsar,mpulsar+dmpulsar))
+	print(" ")
+
+	mcomp=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)*(mtot**2)/1.9891e30)**(1/3)/np.sin(60*np.pi/180)
+	dmcomp=(2*dmtot*mtot**(-1/3)/3)*(299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)/1.9891e30)**(1/3))/np.sin(60*np.pi/180)
+	mpulsar=mtot-mcomp
+	dmpulsar=np.sqrt(dmtot**2+dmcomp**2)
+
+	print("At i= 60º")
+	print("Mcomp= {} - {} solar masses".format(mcomp-dmcomp,mcomp+dmcomp))
+	print("Mpulsar= {} - {} solar masses".format(mpulsar-dmpulsar,mpulsar+dmpulsar))
+	print(" ")
+
+	mcomp=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)*(mtot**2)/1.9891e30)**(1/3)/np.sin(45*np.pi/180)
+	dmcomp=(2*dmtot*mtot**(-1/3)/3)*(299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)/1.9891e30)**(1/3))/np.sin(45*np.pi/180)
+	mpulsar=mtot-mcomp
+	dmpulsar=np.sqrt(dmtot**2+dmcomp**2)
+
+	print("At i= 45º")
+	print("Mcomp= {} - {} solar masses".format(mcomp-dmcomp,mcomp+dmcomp))
+	print("Mpulsar= {} - {} solar masses".format(mpulsar-dmpulsar,mpulsar+dmpulsar))
+	print(" ")
+	print(" ")
+
 if args.omdot and args.gamma:
 	
 	mcomp=(-mtot+np.sqrt(mtot**2+4*mtot**(4/3)*mgamma))/2
@@ -176,11 +218,13 @@ if args.omdot and args.gamma:
 	s=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)*((mtot**2)/(1.9891e30*mcomp**3)))**(1/3)
 
 	print("Masses from periastron advance and Einstein delay:")
+	print(" ")
 	print("Mcomp= {} solar masses".format(mcomp))
 	print("Mtot= {} solar masses".format(mtot))
 	print("Mpulsar= {} solar masses".format(mpulsar))
 	print("Inclination angle from mass function: s={} (i={} º)".format(s,np.arcsin(s)*(180/np.pi)))
-	print("")
+	print(" ")
+	print(" ")
 
 if args.omdot and args.pbdot:
 
@@ -192,12 +236,11 @@ if args.omdot and args.pbdot:
 	s2=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)*((mtot**2)/(1.9891e30*m2**3)))**(1/3)
 
 	print("Masses from periastron advance and orbital decay:")
+	print(" ")
 	print("M1= {} solar masses".format(m1))
 	print("M2= {} solar masses".format(m2))
 	print("Mtot= {} solar masses".format(mtot))
 	print("Inclination angle if 1 is companion: s={} (i={} º)".format(s1,np.arcsin(s1)*(180/np.pi)))
 	print("Inclination angle if 2 is companion: s={} (i={} º)".format(s2,np.arcsin(s2)*(180/np.pi)))
-	print("")
-
-
-
+	print(" ")
+	print(" ")
