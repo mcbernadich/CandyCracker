@@ -90,8 +90,11 @@ parser.add_argument("-e","--eccentricity",type=float,help="Excentricity. If not 
 parser.add_argument("--mpulsar",type=float,help="Mass of pulsar (no uncertanties taken.). Default: 1.35 solar masses.")
 parser.add_argument("--mcompanion",help="Mass of companion (mass+/-uncertainty). Use it to skip mass estimations.")
 parser.add_argument("--mtotal",help="Total mass (mass+/-uncertainty). Must be used with --mcompanion. If used it has precedence over '--mpulsar'")
+parser.add_argument("-i","--inclination",type=float,help="Force custom inclination angle into the mass function where applicable (degrees).")
 parser.add_argument("-v","--verbose",action="store_true")
 args = parser.parse_args()
+
+print(" ")
 
 if args.ephemeris:
 	(f0,p_orb,x,ecc,omega,periastron)=read_ephemeris(args.ephemeris)
@@ -181,43 +184,64 @@ elif args.mcompanion:
 
 if mcomp_from_massfunction==True:
 
+	if args.inclination:
+
+		s=np.sin(args.inclination*np.pi/180)
+
+		if args.verbose==True:
+			print("Computing companion mass at inclination angle of {}º.".format(args.inclination))
+		a_custom=x/s		
+		mcomp_custom=newton(mass_equation,mpulsar,fprime=mass_equation_derivative,args=(p_orb,a_custom,mpulsar))
+		print("Companion mass at inclination {}º: {}".format(args.inclination,mcomp_custom))
+		print(" ")
+		mass_function_custom=4*np.pi**2*(299792458*a_custom)**3/((24*3600*p_orb)**2*6.67408e-11)/1.9891e30
+
 	if args.verbose==True:
 		print("Computing minimum companion mass.")
 	mcomp_min=newton(mass_equation,mpulsar,fprime=mass_equation_derivative,args=(p_orb,x,mpulsar))
-	print("Minimum companion mass at inclination 90º: {}".format(mcomp_min))
-	print(" ")
+	if args.inclination==True:
+		print("Minimum companion mass at inclination 90º: {}".format(mcomp_min))
+		print(" ")
+	mass_function_min=4*np.pi**2*(299792458*x)**3/((24*3600*p_orb)**2*6.67408e-11)/1.9891e30
 
 	if args.verbose==True:
 		print("Computing median companion mass at inclination angle of 60º.")
 	a_median=x/np.sin(60*(np.pi/180))
 	mcomp_median=newton(mass_equation,mpulsar,fprime=mass_equation_derivative,args=(p_orb,a_median,mpulsar))
-	print("Median companion mass at inclination 60º: {}".format(mcomp_median))
-	print(" ")
+	if args.inclination==True:
+		print("Median companion mass at inclination 60º: {}".format(mcomp_median))
+		print(" ")
+	mass_function_median=4*np.pi**2*(299792458*a_median)**3/((24*3600*p_orb)**2*6.67408e-11)/1.9891e30
 
 	if args.verbose==True:
 		print("Computing companion mass at inclination angle of 45º.")
 	a_max=x/np.sin(45*(np.pi/180))
 	mcomp_max=newton(mass_equation,mpulsar,fprime=mass_equation_derivative,args=(p_orb,a_max,mpulsar))
-	print("Companion mass at inclination 45º: {}".format(mcomp_max))
-	print(" ")
+	if args.inclination==True:
+		print("Companion mass at inclination 45º: {}".format(mcomp_max))
+		print(" ")
+	mass_function_max=4*np.pi**2*(299792458*a_max)**3/((24*3600*p_orb)**2*6.67408e-11)/1.9891e30
 
 	if args.verbose==True:
 		print("Plotting companion mass results.")
 		print(" ")
 	masses=np.linspace(0,3*mcomp_max/2,1000)
 	masses_equation=masses**3/(mpulsar+masses)**2
-	mass_function_min=4*np.pi**2*(299792458*x)**3/((24*3600*p_orb)**2*6.67408e-11)/1.9891e30
-	mass_function_median=4*np.pi**2*(299792458*a_median)**3/((24*3600*p_orb)**2*6.67408e-11)/1.9891e30
-	mass_function_max=4*np.pi**2*(299792458*a_max)**3/((24*3600*p_orb)**2*6.67408e-11)/1.9891e30
 
 	plt.plot(masses,masses_equation,"c-",label="$M_1$ = {} M$_\odot$".format(mpulsar))
-	plt.hlines(mass_function_min,max(mcomp_min-2,0),mcomp_max+2,color="blue",linestyles="--")
-	plt.hlines(mass_function_median,max(mcomp_min-2,0),mcomp_max+2,color="blue",linestyles="--",label="$P_o$ = {} d, $a\\times sin(i = 90, 60, 45$º$)$ = {} ls".format(round(p_orb,2),round(x,2),60))
-	plt.hlines(mass_function_max,max(mcomp_min-2,0),mcomp_max+2,color="blue",linestyles="--")
-	plt.vlines(mcomp_min,np.min(masses_equation),np.max(masses_equation),color="red",linestyles="--")
-	plt.vlines(mcomp_median,np.min(masses_equation),np.max(masses_equation),color="red",linestyles="--",label="$M_2$ (i = 90, 60, 45º) = {},{},{} M$_\odot$".format(round(mcomp_min,3),round(mcomp_median,3),round(mcomp_max,3)))
-	plt.vlines(mcomp_max,np.min(masses_equation),np.max(masses_equation),color="red",linestyles="--")
-	plt.plot([mcomp_min,mcomp_median,mcomp_max],[mass_function_min,mass_function_median,mass_function_max],"ro")
+
+	if args.inclination:
+		plt.hlines(mass_function_custom,max(mcomp_min-2,0),mcomp_max+2,color="blue",linestyles="--",label="$P_o$ = {} d, $a\\times sin(i = {}$º$)$ = {} ls".format(round(p_orb,2),args.inclination,round(x,2)))
+		plt.vlines(mcomp_custom,np.min(masses_equation),np.max(masses_equation),color="red",linestyles="--",label="$M_2$ (i = {}$º$) = {} M$_\odot$".format(args.inclination,round(mcomp_custom,3)))
+		plt.plot([mcomp_custom],[mass_function_custom],"ro")
+	else:
+		plt.hlines(mass_function_min,max(mcomp_min-2,0),mcomp_max+2,color="blue",linestyles="--")
+		plt.hlines(mass_function_median,max(mcomp_min-2,0),mcomp_max+2,color="blue",linestyles="--",label="$P_o$ = {} d, $a\\times sin(i = 90, 60, 45$º$)$ = {} ls".format(round(p_orb,2),round(x,2)))
+		plt.hlines(mass_function_max,max(mcomp_min-2,0),mcomp_max+2,color="blue",linestyles="--")
+		plt.vlines(mcomp_min,np.min(masses_equation),np.max(masses_equation),color="red",linestyles="--")
+		plt.vlines(mcomp_median,np.min(masses_equation),np.max(masses_equation),color="red",linestyles="--",label="$M_2$ (i = 90, 60, 45$º$) = {},{},{} M$_\odot$".format(round(mcomp_min,3),round(mcomp_median,3),round(mcomp_max,3)))
+		plt.vlines(mcomp_max,np.min(masses_equation),np.max(masses_equation),color="red",linestyles="--")
+		plt.plot([mcomp_min,mcomp_median,mcomp_max],[mass_function_min,mass_function_median,mass_function_max],"ro")
 
 	plt.xlabel("Trial mass (M$_\odot$)")
 	plt.ylabel("Mass function (M$_\odot$)")
@@ -227,7 +251,10 @@ if mcomp_from_massfunction==True:
 	plt.grid()
 	plt.show()
 
-	mcomp=np.array([mcomp_min,mcomp_median,mcomp_max])
+	if args.inclination:
+		mcomp=mcomp_custom
+	else:
+		mcomp=np.array([mcomp_min,mcomp_median,mcomp_max])
 
 	mtot=mpulsar+mcomp
 	if args.verbose==True:
@@ -248,7 +275,7 @@ if mcomp_from_massfunction==True:
 		print("Computing axis decay for {} + {} = {} solar masses.".format(mpulsar,mcomp,mtot))
 #	xdot=axis_decay(p_orb,ecc,mxdot)/299792458
 	xdot=x*pdot/p_orb
-	print("Estimated rate of axis decay: {} ls/s".format(xdot))
+	print("Expected rate of axis decay: {} ls/s".format(xdot))
 	print(" ")
 
 	mgamma=(mcomp*1.9891e30)*((mpulsar+2*mcomp)*1.9891e30)/((mtot*1.9891e30)**(4/3))
@@ -258,20 +285,33 @@ if mcomp_from_massfunction==True:
 	print("Expected magnitude of Einstein delay: {} us".format(delay))
 	print(" ")
 
-	if args.verbose==True:
-		print("Computing Saphiro delay for i = 85 and 75º")
-	a_85=x/np.sin(85*(np.pi/180))
-	mcomp_85=newton(mass_equation,mpulsar,fprime=mass_equation_derivative,args=(p_orb,a_85,mpulsar))
-	a_75=x/np.sin(75*(np.pi/180))
-	mcomp_75=newton(mass_equation,mpulsar,fprime=mass_equation_derivative,args=(p_orb,a_75,mpulsar))
-	max_delay_85=shapiro_delay_full(mcomp_85,np.sin(85*(np.pi/180)))
-	max_delay_75=shapiro_delay_full(mcomp_85,np.sin(75*(np.pi/180)))
-	(third_delay_85,h3_85,stig_85)=shapiro_delay_third(mcomp_85,np.sin(85*(np.pi/180)))
-	(third_delay_75,h3_75,stig_75)=shapiro_delay_third(mcomp_75,np.sin(75*(np.pi/180)))
-	print("Expected maximum magnitude of Shapiro delay for i = 85 and 75º: {} and {} us".format(max_delay_85*1e6,max_delay_75*1e6))
-	print("Expected magnitude of third-order Shapiro delay for i = 85 and 75º: {} and {} us".format(third_delay_85*1e6,third_delay_75*1e6))
-	print("Expected orthometric amplitude for i = 85 and 75º: {} and {} us".format(h3_85*1e6,h3_75*1e6))
-	print("Expected orthometric ratio for i = 85 and 75º: {} and {}".format(stig_85,stig_75))
+	if args.inclination:
+
+		if args.verbose==True:
+			print("Computing Saphiro delay for i = {}º".format(args.inclination))
+		max_delay=shapiro_delay_full(mcomp_custom,np.sin(args.inclination*(np.pi/180)))
+		(third_delay,h3,stig)=shapiro_delay_third(mcomp_custom,np.sin(args.inclination*(np.pi/180)))
+		print("Expected maximum magnitude of Shapiro delay for i = {}º: {} us".format(args.inclination,max_delay*1e6))
+		print("Expected magnitude of third-order Shapiro delay for i = {}º: {} us".format(args.inclination,third_delay*1e6))
+		print("Expected orthometric amplitude (h3) for i = {}º: {} us".format(args.inclination,h3*1e6))
+		print("Expected orthometric ratio (stig) for i = {}º: {}".format(args.inclination,stig))
+
+	else:
+
+		if args.verbose==True:
+			print("Computing Saphiro delay for i = 85 and 75º")
+		a_85=x/np.sin(85*(np.pi/180))
+		mcomp_85=newton(mass_equation,mpulsar,fprime=mass_equation_derivative,args=(p_orb,a_85,mpulsar))
+		a_75=x/np.sin(75*(np.pi/180))
+		mcomp_75=newton(mass_equation,mpulsar,fprime=mass_equation_derivative,args=(p_orb,a_75,mpulsar))
+		max_delay_85=shapiro_delay_full(mcomp_85,np.sin(85*(np.pi/180)))
+		max_delay_75=shapiro_delay_full(mcomp_85,np.sin(75*(np.pi/180)))
+		(third_delay_85,h3_85,stig_85)=shapiro_delay_third(mcomp_85,np.sin(85*(np.pi/180)))
+		(third_delay_75,h3_75,stig_75)=shapiro_delay_third(mcomp_75,np.sin(75*(np.pi/180)))
+		print("Expected maximum magnitude of Shapiro delay for i = 85 and 75º: {} and {} us".format(max_delay_85*1e6,max_delay_75*1e6))
+		print("Expected magnitude of third-order Shapiro delay for i = 85 and 75º: {} and {} us".format(third_delay_85*1e6,third_delay_75*1e6))
+		print("Expected orthometric amplitude (h3) for i = 85 and 75º: {} and {} us".format(h3_85*1e6,h3_75*1e6))
+		print("Expected orthometric ratio (stig) for i = 85 and 75º: {} and {}".format(stig_85,stig_75))
 
 elif mcomp_from_massfunction==False:
 
@@ -303,8 +343,8 @@ elif mcomp_from_massfunction==False:
 #	xdot_max=axis_decay(p_orb,ecc,mxdot_max)/299792458
 #	xdot_min=axis_decay(p_orb,ecc,mxdot_min)/299792458
 	xdot=x*pdot/p_orb
-	xdot_max==x*pdot_max/p_orb
-	xdot_min==x*pdot_min/p_orb
+	xdot_max=x*pdot_max/p_orb
+	xdot_min= x*pdot_min/p_orb
 	print("Estimated rate of axis decay: {}+{}-{} ls/s".format(xdot,xdot_max-xdot,xdot-xdot_min))
 	print(" ")
 
@@ -338,5 +378,5 @@ elif mcomp_from_massfunction==False:
 	(third_delay_min,h3_min,stig_min)=shapiro_delay_third(mcomp_min,s_min)
 	print("Estimated maximum magnitude of Shapiro delay: {}+{}-{} us".format(max_delay*1e6,(max_delay_max-max_delay)*1e6,(max_delay-max_delay_min)*1e6))
 	print("Estimated magnitude of third-order Shapiro delay: {}+{}-{} us".format(third_delay*1e6,(third_delay_max-third_delay)*1e6,(third_delay-third_delay_min)*1e6))
-	print("Estimated orthometric amplitude: {}+{}-{} us".format(h3*1e6,(h3_max-h3)*1e6,(h3-h3_min)*1e6))
-	print("Estimated orthometric ratio for: {}+{}-{}".format(stig,stig_max-stig,stig-stig_min))
+	print("Estimated orthometric amplitude (h3): {}+{}-{} us".format(h3*1e6,(h3_max-h3)*1e6,(h3-h3_min)*1e6))
+	print("Estimated orthometric ratio (stig): {}+{}-{}".format(stig,stig_max-stig,stig-stig_min))
