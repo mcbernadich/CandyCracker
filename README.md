@@ -12,7 +12,7 @@ This is not fitorbit! For a full implementation of fitorbit, go visit for exampl
 
 ## Requirements
 
-python3, numpy, matplotlib, scipy and gatspy so far.
+python3, numpy, matplotlib, scipy, gatspy and astropy so far.
 A tempo2 installation if you use dracula2.py.
 
 ## Contents
@@ -44,6 +44,10 @@ I was tempted to call this snipped ```phaseConnect.py```, as it is a code to ach
 ### constrainMass.py:
 
 This -still incomplete- snippet contrains the masses of your system given Keplerian and post-Keplerian parameters. It doesn't draw full mass and inclination diagrams, it just gives some values assuming general relativity. It only requires numpy.
+
+### computeTimes.py:
+
+This snippet allows you to compute observing times for MeerKAT of events happening at certain sky coordinates (e.g., periastron or conjunction at altitude higher than 20 degrees) given orbital parameters or a tempo2 ephemeris. It has some flexibility and it can account for omdot. Eventually, more telescopes sites can be added. It requires numpy, scipy and (of course) astropy.
 
 ## To do's of this repo:
 
