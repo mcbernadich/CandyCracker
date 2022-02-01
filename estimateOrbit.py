@@ -4,12 +4,14 @@ import argparse
 import sys
 #Writen by Miquel Colom Bernadich i la mare que el va parir. Last update: 31/10/2021
 
-def fit_ellipse(periods,derivatives):
+def fit_ellipse(periods,derivatives,errors):
 
 	print("Assuming circular orbit and guessing...")
 	print("")
 
 	coeff=np.polynomial.polynomial.polyfit(periods,derivatives**2,2)
+
+	# Compute reduces chi2r of fit to indicate quality.
 
 	period=-coeff[1]/(2*coeff[2])
 	p_orb=2*np.pi*299792458/(period*np.sqrt(-coeff[2]))
@@ -126,6 +128,7 @@ def fit_roughness(epochs,periods,errors,period_range="none"):
 
 	best_porb=trial_porbs[np.argmin(roughness)]
 
+	print("")
 	print("Best orbital period= {} days".format(best_porb))
 	print("")
 
@@ -150,6 +153,9 @@ def fit_LombScargle(epochs,periods,errors,period_range="none"):
 	print(trial_porbs,power)
 	ls.optimizer.period_range = (min_porb, last_porb)
 	best_porb=ls.best_period
+
+	print("Best orbital period= {} days".format(best_porb))
+	print("")
 
 	return (best_porb,trial_porbs,power)
 
@@ -232,7 +238,7 @@ if args.verbose==True:
 	print("")
 
 if args.range:
-	start=int(args.args.range.split(":")[0])
+	start=int(args.range.split(":")[0])
 	end=int(args.range.split(":")[1])
 	history=np.loadtxt(data).T[:,start:end+1]
 	if args.verbose==True:
