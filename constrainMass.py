@@ -92,6 +92,8 @@ parser.add_argument("--gamma",help="Einstein delay (value+/-uncertainty) in s.")
 parser.add_argument("--pbdot",help="Spin-down (value+/-uncertainty) in s/s.")
 parser.add_argument("--h3",help="Orthometric amplitude amplitude of saphiro delay (value+/-uncertainty) in s.")
 parser.add_argument("--stig",help="Orthometric amplitude amplitude of saphiro delay (value+/-uncertainty).")
+parser.add_argument("--demodulate",help="If set at any value, it will print out all mass ranges from 90 to 30º.")
+parser.add_argument("-i","--inclination",type=float,help="Force custom inclination angle into the mass function (degrees).")
 parser.add_argument("-v","--verbose",action="store_true")
 args = parser.parse_args()
 
@@ -173,43 +175,69 @@ if args.h3 and args.stig:
 
 if args.omdot:
 
-	# Estimate range of masses for pulsar and companion if i=90º.
-
-	print("Masses from periastron advance an mass function")
+	print("Masses from periastron advance an mass function:")
 	print(" ")
 	print("Mtot= {} - {} solar masses".format(mtot-dmtot,mtot+dmtot))
 	print(" ")
 
-	mcomp=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)*(mtot**2)/1.9891e30)**(1/3)
-	dmcomp=(2*dmtot*mtot**(-1/3)/3)*(299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)/1.9891e30)**(1/3))
-	mpulsar=mtot-mcomp
-	dmpulsar=np.sqrt(dmtot**2+dmcomp**2)
+	if args.demodulate:
 
-	print("At i= 90º")
-	print("Mcomp= {} - {} solar masses".format(mcomp-dmcomp,mcomp+dmcomp))
-	print("Mpulsar= {} - {} solar masses".format(mpulsar-dmpulsar,mpulsar+dmpulsar))
-	print(" ")
+		print("i(º), sin(i), Mcomp(Msun), Mpulsar(Msun)")
 
-	mcomp=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)*(mtot**2)/1.9891e30)**(1/3)/np.sin(60*np.pi/180)
-	dmcomp=(2*dmtot*mtot**(-1/3)/3)*(299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)/1.9891e30)**(1/3))/np.sin(60*np.pi/180)
-	mpulsar=mtot-mcomp
-	dmpulsar=np.sqrt(dmtot**2+dmcomp**2)
+		for s in np.arange(1,0.51,-0.01):
 
-	print("At i= 60º")
-	print("Mcomp= {} - {} solar masses".format(mcomp-dmcomp,mcomp+dmcomp))
-	print("Mpulsar= {} - {} solar masses".format(mpulsar-dmpulsar,mpulsar+dmpulsar))
-	print(" ")
+			mcomp=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)*(mtot**2)/1.9891e30)**(1/3)/s
+			mpulsar=mtot-mcomp
 
-	mcomp=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)*(mtot**2)/1.9891e30)**(1/3)/np.sin(45*np.pi/180)
-	dmcomp=(2*dmtot*mtot**(-1/3)/3)*(299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)/1.9891e30)**(1/3))/np.sin(45*np.pi/180)
-	mpulsar=mtot-mcomp
-	dmpulsar=np.sqrt(dmtot**2+dmcomp**2)
+			print("{}, {}, {}, {}".format(180*np.arcsin(s)/np.pi,s,mcomp,mpulsar))
+	
+		print(" ")
 
-	print("At i= 45º")
-	print("Mcomp= {} - {} solar masses".format(mcomp-dmcomp,mcomp+dmcomp))
-	print("Mpulsar= {} - {} solar masses".format(mpulsar-dmpulsar,mpulsar+dmpulsar))
-	print(" ")
-	print(" ")
+	elif args.inclination:
+
+		s=np.sin(args.inclination*np.pi/180)
+		mcomp=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)*(mtot**2)/1.9891e30)**(1/3)/s
+		dmcomp=(2*dmtot*mtot**(-1/3)/3)*(299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)/1.9891e30)**(1/3))/s
+		mpulsar=mtot-mcomp
+		dmpulsar=np.sqrt(dmtot**2+dmcomp**2)
+
+		print("At i= {}º".format(args.inclination))
+		print("Mcomp= {} - {} solar masses".format(mcomp-dmcomp,mcomp+dmcomp))
+		print("Mpulsar= {} - {} solar masses".format(mpulsar-dmpulsar,mpulsar+dmpulsar))
+		print(" ")
+
+	else:
+
+		mcomp=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)*(mtot**2)/1.9891e30)**(1/3)
+		dmcomp=(2*dmtot*mtot**(-1/3)/3)*(299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)/1.9891e30)**(1/3))
+		mpulsar=mtot-mcomp
+		dmpulsar=np.sqrt(dmtot**2+dmcomp**2)
+
+		print("At i= 90º")
+		print("Mcomp= {} - {} solar masses".format(mcomp-dmcomp,mcomp+dmcomp))
+		print("Mpulsar= {} - {} solar masses".format(mpulsar-dmpulsar,mpulsar+dmpulsar))
+		print(" ")
+
+		mcomp=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)*(mtot**2)/1.9891e30)**(1/3)/np.sin(60*np.pi/180)
+		dmcomp=(2*dmtot*mtot**(-1/3)/3)*(299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)/1.9891e30)**(1/3))/np.sin(60*np.pi/180)
+		mpulsar=mtot-mcomp
+		dmpulsar=np.sqrt(dmtot**2+dmcomp**2)
+
+		print("At i= 60º")
+		print("Mcomp= {} - {} solar masses".format(mcomp-dmcomp,mcomp+dmcomp))
+		print("Mpulsar= {} - {} solar masses".format(mpulsar-dmpulsar,mpulsar+dmpulsar))
+		print(" ")
+
+		mcomp=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)*(mtot**2)/1.9891e30)**(1/3)/np.sin(45*np.pi/180)
+		dmcomp=(2*dmtot*mtot**(-1/3)/3)*(299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)/1.9891e30)**(1/3))/np.sin(45*np.pi/180)
+		mpulsar=mtot-mcomp
+		dmpulsar=np.sqrt(dmtot**2+dmcomp**2)
+
+		print("At i= 45º")
+		print("Mcomp= {} - {} solar masses".format(mcomp-dmcomp,mcomp+dmcomp))
+		print("Mpulsar= {} - {} solar masses".format(mpulsar-dmpulsar,mpulsar+dmpulsar))
+		print(" ")
+		print(" ")
 
 if args.omdot and args.gamma:
 	
