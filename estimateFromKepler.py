@@ -225,21 +225,21 @@ if mcomp_from_massfunction==True:
 	if args.verbose==True:
 		print("Plotting companion mass results.")
 		print(" ")
-	masses=np.linspace(0,4*mcomp_max/3,1000)
+	masses=np.linspace(0,3*mcomp_max/2,1000)
 	masses_equation=masses**3/(mpulsar+masses)**2
 
 	plt.plot(masses,masses_equation,"c-",label="$M_1$ = {} M$_\odot$".format(mpulsar))
 
 	if args.inclination:
-		plt.hlines(mass_function_custom,max(mcomp_min-2,0),mcomp_max+2,color="blue",linestyles="--",label="$P_o$ = {} d, $a\\times sin(i = {}º)$ = {} ls".format(round(p_orb,2),args.inclination,round(x,2)))
-		plt.vlines(mcomp_custom,np.min(masses_equation),np.max(masses_equation),color="red",linestyles="--",label="$M_2$ (i = {}º) = {} M$_\odot$".format(args.inclination,round(mcomp_custom,3)))
+		plt.hlines(mass_function_custom,max(mcomp_min-2,0),mcomp_max+2,color="blue",linestyles="--",label="$P_o$ = {} d, $a\\times sin(i = {}$º$)$ = {} ls".format(round(p_orb,2),args.inclination,round(x,2)))
+		plt.vlines(mcomp_custom,np.min(masses_equation),np.max(masses_equation),color="red",linestyles="--",label="$M_2$ (i = {}$º$) = {} M$_\odot$".format(args.inclination,round(mcomp_custom,3)))
 		plt.plot([mcomp_custom],[mass_function_custom],"ro")
 	else:
 		plt.hlines(mass_function_min,max(mcomp_min-2,0),mcomp_max+2,color="blue",linestyles="--")
-		plt.hlines(mass_function_median,max(mcomp_min-2,0),mcomp_max+2,color="blue",linestyles="--",label="$P_o$ = {} d, $a\\times sin(i = 90, 60, 45º)$ = {} ls".format(round(p_orb,2),round(x,2)))
+		plt.hlines(mass_function_median,max(mcomp_min-2,0),mcomp_max+2,color="blue",linestyles="--",label="$P_o$ = {} d, $a\\times sin(i = 90, 60, 45$º$)$ = {} ls".format(round(p_orb,2),round(x,2)))
 		plt.hlines(mass_function_max,max(mcomp_min-2,0),mcomp_max+2,color="blue",linestyles="--")
 		plt.vlines(mcomp_min,np.min(masses_equation),np.max(masses_equation),color="red",linestyles="--")
-		plt.vlines(mcomp_median,np.min(masses_equation),np.max(masses_equation),color="red",linestyles="--",label="$M_2$ (i = 90, 60, 45º) = {},{},{} M$_\odot$".format(round(mcomp_min,3),round(mcomp_median,3),round(mcomp_max,3)))
+		plt.vlines(mcomp_median,np.min(masses_equation),np.max(masses_equation),color="red",linestyles="--",label="$M_2$ (i = 90, 60, 45$º$) = {},{},{} M$_\odot$".format(round(mcomp_min,3),round(mcomp_median,3),round(mcomp_max,3)))
 		plt.vlines(mcomp_max,np.min(masses_equation),np.max(masses_equation),color="red",linestyles="--")
 		plt.plot([mcomp_min,mcomp_median,mcomp_max],[mass_function_min,mass_function_median,mass_function_max],"ro")
 
