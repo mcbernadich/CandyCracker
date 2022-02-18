@@ -15,8 +15,9 @@ def read_chi2r(parFile):
 	return chi2r
 
 
-# Read a PAR file, add JUMPSs between teh observation, and fit all of the parameters (with 1 in the PAR) and the JUMPs.
-# This initializes the script.
+# Read a PAR file, add JUMPS MJD statements for each osbervation except the last one,
+# and fit all of the parameters (with 1 in the PAR) and the JUMP MJD statements.
+# This marks the initialization of the script as well.
 def add_jumps_and_fit(parFile,timFile):
 
 	# Open files and create a new PAR file that will contain the jumps.
@@ -62,6 +63,8 @@ def add_jumps_and_fit(parFile,timFile):
 	# Add the time jumps.
 	# Unlike in tempo, tempo2 can not jump at a particular MJD, but it can jump the data within an interval [MJD1,MJD2].
 	# We put each observation except the last one within its own jump interval.
+	# The last observation, which has no MJD interval jump is therefore the reference one.
+	# This is why it is important to not jump it. However, it can have a jump if it is not a MJD one and stays fiexd (e.g., an instrumental jump). 
 	print("")
 	print("Adding time jumps to "+parFile_jumps)
 
@@ -108,14 +111,14 @@ def remove_jump_add_phase(parFile_jumps,phase_jump_times,jump_index,phase,max_ch
 	jumps=[]
 	for line in par_read:
 		chunks = line.strip().split()
-		if chunks[0]=="JUMP":
+		if chunks[0]+" "+chunks[1]=="JUMP MJD":
 			jumps.append([float(chunks[2]),float(chunks[3]),float(chunks[4])])
 		else:
 			par_write.write(line)
 	jumps=np.array(jumps)
 	# Create a new array with removed time jumps according to phase jumps position.
 	# Unlike in tempo, we can't remove jumps between observations in tempo2.
-	# Instead, we join consecutive [MJD1,MJD2] jump intervals to out 2 observations together in the same jump with respect the last one.
+	# Instead, we join consecutive [MJD1,MJD2] jump intervals to join 2 observations together in the same jump with respect the last observation.
 	i=1
 	skip_step=False
 	for element in jumps:
@@ -124,7 +127,7 @@ def remove_jump_add_phase(parFile_jumps,phase_jump_times,jump_index,phase,max_ch
 			i=i+1
 			continue
 		# The second-to-last observation (last [MJD1,MJD2] jump intervals) can only be joined with the last obs, which has no jump.
-		# Therefore, in such case, the [MJD1,MJD2] jump interval is just removed.
+		# Therefore, in such case, the [MJD1,MJD2] jump interval is just removed. This is repeated for every jump that comes lust in time ordering.
 		if (element==jumps[-1]).all():
 			if phase_jump_times[jump_index]>element[1]:
 				dummy=1 #Do not write the time jump in the new file.
@@ -247,7 +250,7 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 	phase=np.array(phase)
 
 	print("")
-	print("Only "+str(max_solutions)+" solutions with CHI2R<"+str(max_chi2r)+" are kept and sent to the next jump removal.")
+	print("At most "+str(max_solutions)+" solutions with CHI2R<"+str(max_chi2r)+" are kept and sent to the next jump removal.")
 
 	# Remove the remaining unnecessary files.
 	sorting=np.argsort(chi2r)
@@ -267,10 +270,10 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 	return 1
 
 parser=argparse.ArgumentParser(description="Take in a tempo2 parameter file and a tim file, and attempt to find a phase connection with JUMP and PHASE statements. It requires an installation of tempo2 and numpy.")
-parser.add_argument("-p","--parameter",help="Tempo2 parameter file WITHOUT jump or phase statements. Only parameters with 1 will be fit.")
-parser.add_argument("-t","--tim",help="Tempo2 tim file. It requires: observation name in the 1st column, and ToA in the third columns. Observations MUST NOT overlap.")
+parser.add_argument("-p","--parameter",help="Tempo2 parameter file WITHOUT 'JUMP MJD' or 'PHASE' statements. There can be other kinds of jumps, but the last observation MUST either NOT be jumped, or have its jump value FIXED. For instance, if you have backend jumps, the backend with the last observation should be the non-jumped one. Only parameters with 1 will be fit.")
+parser.add_argument("-t","--tim",help="Tempo2 tim file. It requires: observation name in the 1st column, and ToA in the third columns.")
 parser.add_argument("--max_chi2r",type=float,help="Largest acceptable chi2r value for a solution. Default: 2.0",default=2.0)
-parser.add_argument("--max_solutions",type=int,help="Largest amount of solutions that are taken from each jump removal attemp. Default: 5",default=5)
+parser.add_argument("--max_solutions",type=int,help="Largest amount of solutions that are taken from each jump removal attempt. Default: 5",default=5)
 args = parser.parse_args()
 
 parFile=args.parameter
@@ -291,6 +294,12 @@ print(phase_jumps_times[ordering])
 i=0
 phases=[]
 chi2r=[]
+# At each jump removal, your directory will become VERY cluttered.
+# However, all files end up nicelly collected in new folders at the end of the script.
+# Ideally, only 2 extra files should be left at in your direcotory:
+# - The original one with all the JUMP MJD statements.
+# - The final, phase-connected solution with no JUMP MJD statements.
+# If there are more than 1 possible solutions, they will be left in your folder as well.
 while i<n_jumps:
 	# Loop over phases
 	if i==0:
