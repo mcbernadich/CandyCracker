@@ -97,7 +97,7 @@ if args.verbose==True:
 	print("")
 
 if args.range:
-	start=int(args.args.range.split(":")[0])
+	start=int(args.range.split(":")[0])
 	end=int(args.range.split(":")[1])
 	history=np.loadtxt(data).T[:,start:end+1]
 	if args.verbose==True:
@@ -183,12 +183,13 @@ elif fit == True and model == "p-phase":
 	folded_epochs[ folded_epochs < reduced_periastron ] = folded_epochs[ folded_epochs < reduced_periastron ] + p_orb
 	(time,periods)=time_period(f0,p_orb,x,ecc,omega,reduced_periastron,2000)
 
-	plt.plot(time-reduced_periastron,1000*periods,"c-")
-	plt.errorbar(folded_epochs-reduced_periastron,history[1]*1000,history[2]*1000,fmt="o")
+	plt.plot((time-reduced_periastron)/p_orb,1000*periods,"c-")
+	plt.errorbar((folded_epochs-reduced_periastron)/p_orb,history[1]*1000,history[2]*1000,fmt="o")
 	plt.plot([],[]," ",label="$P_p$ = {} ms, $P_o$ = {} d,\n$x$ = {} ls, $ecc$ = {},\n$\omega$ = {}º, $T_0$= {} MJD".format(round(1000/f0,3),round(p_orb,3),round(x,3),round(ecc,3),round(omega,3),round(periastron,3)))
 	plt.ylabel("$P_{bary}$ (ms)")
-	plt.xlabel("orbital phase (MJD)")
+	plt.xlabel("time from periastron (phase)")
 	plt.title(args.data.split(".")[0].split("/")[-1])
 	plt.legend()
 	plt.tight_layout()
+	plt.xlim(0,1)
 	plt.show()

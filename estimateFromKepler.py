@@ -171,9 +171,9 @@ elif args.mcompanion:
 	mpulsar_max=mpulsar
 	mpulsar_min=mpulsar
 
-	mtotal=mcomp+mpulsar
-	mtotal_max=mcomp_max+mpulsar
-	mtotal_min=mcomp_min+mpulsar
+	mtot=mcomp+mpulsar
+	mtot_max=mcomp_max+mpulsar
+	mtot_min=mcomp_min+mpulsar
 
 	if args.verbose==True:
 		print("Companion mass: {} solar masses".format(mcomp_str))
@@ -239,7 +239,7 @@ if mcomp_from_massfunction==True:
 		plt.hlines(mass_function_median,max(mcomp_min-2,0),mcomp_max+2,color="blue",linestyles="--",label="$P_o$ = {} d, $a\\times sin(i = 90, 60, 45$º$)$ = {} ls".format(round(p_orb,2),round(x,2)))
 		plt.hlines(mass_function_max,max(mcomp_min-2,0),mcomp_max+2,color="blue",linestyles="--")
 		plt.vlines(mcomp_min,np.min(masses_equation),np.max(masses_equation),color="red",linestyles="--")
-		plt.vlines(mcomp_median,np.min(masses_equation),np.max(masses_equation),color="red",linestyles="--",label="$M_2$ (i = 90, 60, 45$º$) = {},{},{} M$_\odot$".format(round(mcomp_min,3),round(mcomp_median,3),round(mcomp_max,3)))
+		plt.vlines(mcomp_median,np.min(masses_equation),np.max(masses_equation),color="red",linestyles="--",label="$M_2 (i = 90, 60, 45$º$)$ = {},{},{} M$_\odot$".format(round(mcomp_min,3),round(mcomp_median,3),round(mcomp_max,3)))
 		plt.vlines(mcomp_max,np.min(masses_equation),np.max(masses_equation),color="red",linestyles="--")
 		plt.plot([mcomp_min,mcomp_median,mcomp_max],[mass_function_min,mass_function_median,mass_function_max],"ro")
 
