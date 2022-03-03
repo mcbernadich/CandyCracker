@@ -250,7 +250,7 @@ else:
 
 sky_position=SkyCoord(ra=ra*u.degree, dec=dec*u.degree, frame='icrs')
 telescope_location=EarthLocation(lon=21.443888889*u.degree, lat=-30.71105556*u.degree, height=1086.6*u.m)
-lon=str(21.443888889)
+lon_hour=str(21.443888889*24/180)
 
 print("")
 print("event MJD, UTC range, LST range:")
@@ -273,8 +273,8 @@ while k<=end:
 	if local_sky_coordinates_start.alt>20*u.degree and local_sky_coordinates_end.alt>20*u.degree:
 		passage_utc_start=(passage-prior*u.hour).utc.to_value('iso', 'date_hms')
 		passage_utc_end=(passage+posterior*u.hour).utc.to_value('iso', 'date_hms')
-		passage_lst_start=(passage-prior*u.hour).sidereal_time('mean',longitude=lon)
-		passage_lst_end=(passage+posterior*u.hour).sidereal_time('mean',longitude=lon)	
+		passage_lst_start=(passage-prior*u.hour).sidereal_time('mean',longitude=lon_hour)
+		passage_lst_end=(passage+posterior*u.hour).sidereal_time('mean',longitude=lon_hour)	
 		print(str(passage)+",	"+passage_utc_start+" - "+passage_utc_end+",	"+str(passage_lst_start)+" - "+str(passage_lst_end))
 		write_file.write(str(passage)+","+passage_utc_start+","+passage_utc_end+","+str(passage_lst_start)+","+str(passage_lst_end)+"\n")
 	k=k+1
