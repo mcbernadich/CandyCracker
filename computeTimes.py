@@ -57,8 +57,8 @@ def get_times_with_omdot(phase,p,e,om,omdot,t0,k):
 #	print(trial_time,time)
 	return time
 
-def get_periastron_times(p,t0,k):
-	periastron_passage=t0+k*p
+def get_times_from_mean(mean_anomaly,p,t0,k):
+	periastron_passage=t0+(k+mean_anomaly)*p
 	return periastron_passage
 
 def read_ephemeris(file):
@@ -106,8 +106,10 @@ def read_ephemeris(file):
 parser=argparse.ArgumentParser(description="Take in an orbital model an compute OBSERVABLE superior conjunction and periastron passage times.")
 parser.add_argument("--ephemeris",help="Fitorbit or tempo or tempo2-format ephemeris.")
 parser.add_argument("--phase",type=float,help="Orbital phase for which times are computed, from 0 to 1.")
+parser.add_argument("--phase_def",type=str,help="Phase can be either defined as angle from ascending node (true, from true anomaly) or mean anomaly (mean).", choices=["true","mean"])
 parser.add_argument("--ra",type=str,help="Righ ascension in degrees or hh:mm:ss")
 parser.add_argument("--dec",type=str,help="Declination in degrees, dd:mm or dd:mm:ss")
+#parser.add_argument("--telescope",type=str,help="Location of observer", choices=["Effelsberg","MeerKAT","Parkes"])
 parser.add_argument("-p","--period",type=float,help="Orbital period in days")
 parser.add_argument("-e","--eccentricity",type=float,help="Excentricity. If not given, assumed 0.")
 parser.add_argument("-o","--omega",type=float,help="Periastron angle in degrees. If not given, assumed 0.")
@@ -122,12 +124,26 @@ args = parser.parse_args()
 print(" ")
 
 if args.phase or args.phase==0.0:
-	phase=args.phase*2*np.pi
+	phase=args.phase-int(args.phase)
 	if args.verbose==True:
-		print("Looking for observing times at "+str(phase/np.pi))
+		print("Looking for observing times at phase "+str(phase))
 		print("")
 else:
 	sys.exit("Please specify the desired orbital phase with --phase")
+
+if args.phase_def:
+	phase_def=args.phase_def
+	if args.verbose==True:
+		print("Orbital phase is assumed to be based on "+str(phase_def)+" anomaly.")
+		if phase_def=="true":
+			print("The required phase is counted from the ascending node.")
+		if phase_def=="true":
+			print("The required phase is counted from periastron.")
+		print(" ")
+else:
+	phase_def="true"
+	print("No phase measure definition. Assuming that true anomaly angle from ascending node is required.")
+	print(" ")
 
 if args.delay or args.delay==0.0:
 	delay=args.delay*u.day
@@ -260,10 +276,12 @@ write_file.write("MJD(event),UTC(start),UTC(end),LST(start),LST(end)\n")
 k=start
 
 while k<=end:
-	if fit_omdot==False:
-		passage_mjd=get_times(phase,p,e,om,t0,k)
-	if fit_omdot==True:
-		passage_mjd=get_times_with_omdot(phase,p,e,om,omdot,t0,k)
+	if phase_def=="true" and fit_omdot==False:
+		passage_mjd=get_times(phase*2*np.pi,p,e,om,t0,k)
+	if phase_def=="true" and fit_omdot==True:
+		passage_mjd=get_times_with_omdot(phase*2*np.pi,p,e,om,omdot,t0,k)
+	if phase_def=="mean":
+		passage_mjd=get_times_from_mean(phase,p,t0,k)
 	passage=Time(passage_mjd,format='mjd',scale='tai')+delay
 #	passage_utc=passage.utc.to_value('iso', 'date_hms')
 #	passage_lst=passage.sidereal_time('mean',longitude="21.41111111")
