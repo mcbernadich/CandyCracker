@@ -4,6 +4,7 @@ from os.path import exists
 import argparse
 import glob
 import multiprocessing as multi
+from functools import partial
 
 
 # libstempo is unable to read CHI2R from the PAR, so I did it myself.
@@ -86,7 +87,7 @@ def add_jumps_and_fit(parFile,timFile,skipJumps,nFits):
 	print("")
 	print("Fitting "+parFile.split(".")[0]+"_jumps.par with "+timFile)
 
-	for i in range(1,nFits+1):
+	for j in range(1,nFits+1):
 		subprocess.run(["tempo2","-f",parFile_jumps,timFile,"-outpar",parFile_jumps],stdout=subprocess.DEVNULL)
 
 	print(" ")
@@ -276,7 +277,7 @@ parser.add_argument("-p","--parameter",help="Tempo2 parameter file WITHOUT 'JUMP
 parser.add_argument("-t","--tim",help="Tempo2 tim file. It requires: observation name in the 1st column, and ToA in the third columns.")
 parser.add_argument("--max_chi2r",type=float,help="Largest acceptable chi2r value for a solution. Default: 2.0",default=2.0)
 parser.add_argument("--max_solutions",type=int,help="Largest amount of solutions that are taken from each jump removal attempt. Default: 5",default=5)
-parser.add_argument("--n_gulp",type=int,help="Number of jumps to remove at the same time (multithreading). Default 4",default=4)
+parser.add_argument("--n_gulp",type=int,help="Number of jumps to remove at the same time (multithreading). The on-screen outputs may become funky. Default: a single thread (serial).")
 parser.add_argument("--pre_fits",type=int,help="Number of fits done to the initial file once jumps are added.",default=1)
 parser.add_argument("--par_with_jumps",type=bool,help="If set, then jumps are assumed to be added manually and they are are not added by dracula2. Make sure that they are in the correct format!",default=False)
 args = parser.parse_args()
@@ -322,14 +323,18 @@ while i<n_jumps:
 		
 		j=0
 
-		while j < nFiles:
+		if args.n_gulp:
 
-			multiprocesses=multi.Pool(processes=args.n_gulp)
-			dummy_array=multiprocesses.map(partial(find_chi2r_interval,parFile=parFiles[j],phase_jump_times=phase_jumps_times,jump_index=ordering[i],phase=args.max_chi2r,max_chi2r=args.max_solutions),range(j,j+args.n_gulp))
-			j=j+args.n_gulp
+			while j < nFiles:
 
-#		for file in parFiles:
-#			dummy=find_chi2r_interval(file,phase_jumps_times,ordering[i],args.max_chi2r,args.max_solutions)
+				multiprocesses=multi.Pool(processes=args.n_gulp)
+				dummy_array=multiprocesses.map(partial(find_chi2r_interval,parFile=parFiles[j],phase_jump_times=phase_jumps_times,jump_index=ordering[i],phase=args.max_chi2r,max_chi2r=args.max_solutions),range(j,j+args.n_gulp))
+				j=j+args.n_gulp
+
+		else:
+
+			for file in parFiles:
+				dummy=find_chi2r_interval(file,phase_jumps_times,ordering[i],args.max_chi2r,args.max_solutions)
 
 		print("")
 		print("Moving files:",parFiles)
