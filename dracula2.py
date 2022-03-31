@@ -3,6 +3,7 @@ import subprocess
 from os.path import exists
 import argparse
 import glob
+import multiprocessing as multi
 
 
 # libstempo is unable to read CHI2R from the PAR, so I did it myself.
@@ -18,7 +19,7 @@ def read_chi2r(parFile):
 # Read a PAR file, add JUMPS MJD statements for each osbervation except the last one,
 # and fit all of the parameters (with 1 in the PAR) and the JUMP MJD statements.
 # This marks the initialization of the script as well.
-def add_jumps_and_fit(parFile,timFile):
+def add_jumps_and_fit(parFile,timFile,skipJumps,nFits):
 
 	# Open files and create a new PAR file that will contain the jumps.
 	par_read=open(parFile,"r")
@@ -75,7 +76,8 @@ def add_jumps_and_fit(parFile,timFile):
 	i=0
 	for pair in start_end_pairs:
 		print("JUMP"+str(i)+" MJD "+str(pair[0]-0.001)+" "+str(pair[1]+0.001)+" 0.0 1")
-		par_write.write("JUMP MJD "+str(pair[0]-0.001)+" "+str(pair[1]+0.001)+" 0.0 1\n")
+		if skipJumps!=True:
+			par_write.write("JUMP MJD "+str(pair[0]-0.001)+" "+str(pair[1]+0.001)+" 0.0 1\n")
 		i=i+1
 
 	par_write.close()
@@ -84,8 +86,8 @@ def add_jumps_and_fit(parFile,timFile):
 	print("")
 	print("Fitting "+parFile.split(".")[0]+"_jumps.par with "+timFile)
 
-	subprocess.run(["tempo2","-f",parFile_jumps,timFile,"-outpar",parFile_jumps],stdout=subprocess.DEVNULL)
-#	subprocess.run(["tempo2","-f",parFile_jumps,timFile,"-outpar",parFile_jumps],stdout=subprocess.DEVNULL)
+	for i in range(1,nFits+1):
+		subprocess.run(["tempo2","-f",parFile_jumps,timFile,"-outpar",parFile_jumps],stdout=subprocess.DEVNULL)
 
 	print(" ")
 	print("Number of jumps:",jumps)
@@ -274,14 +276,19 @@ parser.add_argument("-p","--parameter",help="Tempo2 parameter file WITHOUT 'JUMP
 parser.add_argument("-t","--tim",help="Tempo2 tim file. It requires: observation name in the 1st column, and ToA in the third columns.")
 parser.add_argument("--max_chi2r",type=float,help="Largest acceptable chi2r value for a solution. Default: 2.0",default=2.0)
 parser.add_argument("--max_solutions",type=int,help="Largest amount of solutions that are taken from each jump removal attempt. Default: 5",default=5)
+parser.add_argument("--n_gulp",type=int,help="Number of jumps to remove at the same time (multithreading). Default 4",default=4)
+parser.add_argument("--pre_fits",type=int,help="Number of fits done to the initial file once jumps are added.",default=1)
+parser.add_argument("--par_with_jumps",type=bool,help="If set, then jumps are assumed to be added manually and they are are not added by dracula2. Make sure that they are in the correct format!",default=False)
 args = parser.parse_args()
+
+print(args.par_with_jumps)
 
 parFile=args.parameter
 timFile=args.tim
 root=parFile.split(".")[0]
 
 # Create a PAR file with jumps and fit for them.
-(n_jumps,chi2r,time_intervals,phase_jumps_times)=add_jumps_and_fit(parFile,timFile)
+(n_jumps,chi2r,time_intervals,phase_jumps_times)=add_jumps_and_fit(parFile,timFile,args.par_with_jumps,args.pre_fits)
 
 # Order the resulting time intervals to know where to start removing.
 ordering=np.argsort(time_intervals)
@@ -309,10 +316,21 @@ while i<n_jumps:
 	else:
 		parFile=parFile.split(".")[0]+"_*.par"
 		parFiles=glob.glob(parFile)
+		nFiles=len(parFiles)
 		print("")
 		print("Surviving PAR files from removing the previous jump:",parFiles)
-		for file in parFiles:
-			dummy=find_chi2r_interval(file,phase_jumps_times,ordering[i],args.max_chi2r,args.max_solutions)
+		
+		j=0
+
+		while j < nFiles:
+
+			multiprocesses=multi.Pool(processes=args.n_gulp)
+			dummy_array=multiprocesses.map(partial(find_chi2r_interval,parFile=parFiles[j],phase_jump_times=phase_jumps_times,jump_index=ordering[i],phase=args.max_chi2r,max_chi2r=args.max_solutions),range(j,j+args.n_gulp))
+			j=j+args.n_gulp
+
+#		for file in parFiles:
+#			dummy=find_chi2r_interval(file,phase_jumps_times,ordering[i],args.max_chi2r,args.max_solutions)
+
 		print("")
 		print("Moving files:",parFiles)
 		subprocess.run(["mkdir",root+"_JUMP"+str(ordering[i-1])],stdout=subprocess.DEVNULL)
