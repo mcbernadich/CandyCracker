@@ -315,21 +315,25 @@ while i<n_jumps:
 		dummy=find_chi2r_interval(parFile,phase_jumps_times,ordering[i],args.max_chi2r,args.max_solutions)
 		i=i+1
 	else:
+
 		parFile=parFile.split(".")[0]+"_*.par"
 		parFiles=glob.glob(parFile)
-		nFiles=len(parFiles)
 		print("")
 		print("Surviving PAR files from removing the previous jump:",parFiles)
-		
-		j=0
+	
 
 		if args.n_gulp:
+
+			nFiles=len(parFiles)
+			j=0
 
 			while j < nFiles:
 
 				multiprocesses=multi.Pool(processes=args.n_gulp)
-				dummy_array=multiprocesses.map(partial(find_chi2r_interval,parFile=parFiles[j],phase_jump_times=phase_jumps_times,jump_index=ordering[i],phase=args.max_chi2r,max_chi2r=args.max_solutions),range(j,j+args.n_gulp))
+				dummy_array=multiprocesses.map(partial(find_chi2r_interval,phase_jump_times=phase_jumps_times,jump_index=ordering[i],phase=args.max_chi2r,max_chi2r=args.max_solutions),[parFiles[j] for j in range(j,j+args.n_gulp)])
 				j=j+args.n_gulp
+
+				j=j+1
 
 		else:
 
