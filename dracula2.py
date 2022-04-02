@@ -59,6 +59,8 @@ def add_jumps_and_fit(parFile,timFile,skipJumps,nFits):
 			time_old=float(time)
 		i=i+1
 
+	nToAs=i-1
+
 	par_read.close()
 	tim_read.close()
 
@@ -87,12 +89,12 @@ def add_jumps_and_fit(parFile,timFile,skipJumps,nFits):
 	print("")
 	print("Fitting "+parFile.split(".")[0]+"_jumps.par with "+timFile)
 
-	for j in range(1,nFits+1):
+	for i in range(1,nFits+1):
 		subprocess.run(["tempo2","-f",parFile_jumps,timFile,"-outpar",parFile_jumps],stdout=subprocess.DEVNULL)
 
 	print(" ")
 	print("Number of jumps:",jumps)
-	print("Number of ToAs:",i-1)
+	print("Number of ToAs:",nToAs)
 	chi2r=read_chi2r(parFile_jumps)
 	print("CHI2R:",chi2r)
 
@@ -199,6 +201,8 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 	print("")
 	print("Computing ramifications from solution "+parFile+".")
 
+	if max_solutions/2 == int(max_solutions/2): #Make sure that the maximum number of solutions is even (symmetry in parabola, including the middle point).
+		max_soultions=max_solutions+1
 	chi2r=[]
 	phase=[-1,0,1]
 
@@ -206,48 +210,161 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 	if exists==True:
 		chi2r.append(instant_chi2r)
 	else:
-		print("Tempo2 can't fit a solution for this phase jump. Using dummy CHI2R value of 99999999.")
-		chi2r.append(99999999.0)
+		print("Tempo2 can't fit a solution for this phase jump. Using dummy CHI2R value of 999999999.")
+		chi2r.append(999999999.0)
 	(instant_chi2r,exists)=remove_jump_add_phase(parFile,phase_jump_times,jump_index,0,max_chi2r)
 	if exists==True:
 		chi2r.append(instant_chi2r)
 	else:
-		print("Tempo2 can't fit a solution for this phase jump. Using dummy CHI2R value of 99999999.")
-		chi2r.append(99999999.0)
+		print("Tempo2 can't fit a solution for this phase jump. Using dummy CHI2R value of 999999999.")
+		chi2r.append(999999999.0)
 	(instant_chi2r,exists)=remove_jump_add_phase(parFile,phase_jump_times,jump_index,+1,max_chi2r)
 	if exists==True:
 		chi2r.append(instant_chi2r)
 	else:
-		print("Tempo2 can't fit a solution for this phase jump. Using dummy CHI2R value of 99999999.")
-		chi2r.append(99999999.0)
+		print("Tempo2 can't fit a solution for this phase jump. Using dummy CHI2R value of 999999999.")
+		chi2r.append(999999999.0)
+
+	# Check which component presents the lowest chi2r.
+	direction=chi2r.index(min(chi2r))
+	print(direction)
+
+	# Choose a direction based on this.
+
+	if direction==0: #We look for the minimum of the parabola on the left.
+
+		print("0")
+
+		# Walk backwards until we hit the chi2r or the max solutions wall.
+		i=-2
+		instant_chi2r=chi2r[0]
+		previous_chi2r=chi2r[1]
+		min_phase=-9999999999 #Just a dummy value that makes sure we don't have minima_phase-i > (max_solutions-1)/2 before the minimum is found.
+		while (instant_chi2r<max_chi2r or (instant_chi2r>max_chi2r and (previous_chi2r-instant_chi2r)>0)) and min_phase-i <= (max_solutions-1)/2: #While we haven't reached the max chi2r value, or we are going down in chi2r value, or we don't have the max amount of wanted solutions on one side.
+			print(min_phase-i, (max_solutions-1)/2)
+			previous_chi2r=instant_chi2r
+			(instant_chi2r,exists)=remove_jump_add_phase(parFile,phase_jump_times,jump_index,i,max_chi2r)
+			if exists==False:
+				print("Tempo2 can't fit a solution beyond this point.")
+				break
+			if (previous_chi2r-instant_chi2r)<0: #This means we have found the minima!
+				min_phase=i+1
+			phase.insert(0,i)
+			chi2r.insert(0,instant_chi2r)
+			i=i-1
+
+		# Walk forward until we hit the chi2r wall once again.
+		i=2
+		instant_chi2r=chi2r[2]
+		previous_chi2r=chi2r[1]
+		while (instant_chi2r<max_chi2r or (instant_chi2r>max_chi2r and (instant_chi2r-previous_chi2r)<0)) and i-min_phase <= (max_solutions-1)/2:
+			previous_chi2r=instant_chi2r
+			(instant_chi2r,exists)=remove_jump_add_phase(parFile,phase_jump_times,jump_index,i,max_chi2r)
+			if exists==False:
+				print("Tempo2 can't fit a solution beyond this point.")
+				break	
+			phase.append(i)
+			chi2r.append(instant_chi2r)
+			i=i+1
+
+	if direction==2: #We look for the minimum of the parabola on the right. 
+
+		print("2")
+
+		# Walk forward until we hit the chi2r or the max solutions wall.
+		i=2
+		instant_chi2r=chi2r[2]
+		previous_chi2r=chi2r[1]
+		min_phase=9999999999
+		while (instant_chi2r<max_chi2r or (instant_chi2r>max_chi2r and (instant_chi2r-previous_chi2r)<0)) and i-min_phase <= (max_solutions-1)/2:
+			print(i-min_phase,(max_solutions-1)/2)
+			previous_chi2r=instant_chi2r
+			(instant_chi2r,exists)=remove_jump_add_phase(parFile,phase_jump_times,jump_index,i,max_chi2r)
+			if exists==False:
+				print("Tempo2 can't fit a solution beyond this point.")
+				break
+			if (previous_chi2r-instant_chi2r)<0:
+				min_phase=i-1
+			phase.append(i)
+			chi2r.append(instant_chi2r)
+			i=i+1
+
+		# Walk forward until we hit the chi2r wall once again.
+		i=-2
+		instant_chi2r=chi2r[0]
+		previous_chi2r=chi2r[1]
+		while (instant_chi2r<max_chi2r or (instant_chi2r>max_chi2r and (previous_chi2r-instant_chi2r)>0)) and min_phase-i <= (max_solutions-1)/2:
+			previous_chi2r=instant_chi2r
+			(instant_chi2r,exists)=remove_jump_add_phase(parFile,phase_jump_times,jump_index,i,max_chi2r)
+			if exists==False:
+				print("Tempo2 can't fit a solution beyond this point.")
+				break
+			phase.insert(0,i)
+			chi2r.insert(0,instant_chi2r)
+			i=i-1
+
+	if direction==1: #The minimum of the oparabola is already known.
+
+		print("1")
+
+		# Walk forward until we hit the chi2r or the max solutions wall.
+		i=2
+		instant_chi2r=chi2r[2]
+		previous_chi2r=chi2r[1]
+		while (instant_chi2r<max_chi2r or (instant_chi2r>max_chi2r and (instant_chi2r-previous_chi2r)<0)) and i <= (max_solutions-1)/2:
+			print(i, (max_solutions-1)/2)
+			previous_chi2r=instant_chi2r
+			(instant_chi2r,exists)=remove_jump_add_phase(parFile,phase_jump_times,jump_index,i,max_chi2r)
+			if exists==False:
+				print("Tempo2 can't fit a solution beyond this point.")
+				break
+			phase.append(i)
+			chi2r.append(instant_chi2r)
+			i=i+1
+
+		# Walk forward until we hit the chi2r wall once again.
+		i=-2
+		instant_chi2r=chi2r[0]
+		previous_chi2r=chi2r[1]
+		while (instant_chi2r<max_chi2r or (instant_chi2r>max_chi2r and (previous_chi2r-instant_chi2r)>0)) and -i <= (max_solutions-1)/2:
+			previous_chi2r=instant_chi2r
+			(instant_chi2r,exists)=remove_jump_add_phase(parFile,phase_jump_times,jump_index,i,max_chi2r)
+			if exists==False:
+				print("Tempo2 can't fit a solution beyond this point.")
+				break
+			phase.insert(0,i)
+			chi2r.insert(0,instant_chi2r)
+			i=i-1
+
+	#This is left-over code from when the maximum amount of solutions wasn't accounted for in the explorer. This could potentially produce hundreths of solutions that were later deleted at the expense of computing time.
 
 	# Walk forward to make sure we are within the range.
-	i=2
-	instant_chi2r=chi2r[2]
-	previous_chi2r=chi2r[1]
-	while instant_chi2r<max_chi2r or (instant_chi2r>max_chi2r and (instant_chi2r-previous_chi2r)<0):
-		previous_chi2r=instant_chi2r
-		(instant_chi2r,exists)=remove_jump_add_phase(parFile,phase_jump_times,jump_index,i,max_chi2r)
-		if exists==False:
-			print("Tempo2 can't fit a solution beyond this point.")
-			break	
-		phase.append(i)
-		chi2r.append(instant_chi2r)
-		i=i+1
+#	i=2
+#	instant_chi2r=chi2r[2]
+#	previous_chi2r=chi2r[1]
+#	while instant_chi2r<max_chi2r or (instant_chi2r>max_chi2r and (instant_chi2r-previous_chi2r)<0):
+#		previous_chi2r=instant_chi2r
+#		(instant_chi2r,exists)=remove_jump_add_phase(parFile,phase_jump_times,jump_index,i,max_chi2r)
+#		if exists==False:
+#			print("Tempo2 can't fit a solution beyond this point.")
+#			break	
+#		phase.append(i)
+#		chi2r.append(instant_chi2r)
+#		i=i+1
 
 	# Walk back to make sure we are within the range.
-	i=-2
-	instant_chi2r=chi2r[0]
-	previous_chi2r=chi2r[1]
-	while instant_chi2r<max_chi2r or (instant_chi2r>max_chi2r and (previous_chi2r-instant_chi2r)>0):
-		previous_chi2r=instant_chi2r
-		(instant_chi2r,exists)=remove_jump_add_phase(parFile,phase_jump_times,jump_index,i,max_chi2r)
-		if exists==False:
-			print("Tempo2 can't fit a solution beyond this point.")
-			break
-		phase.insert(0,i)
-		chi2r.insert(0,instant_chi2r)
-		i=i-1
+#	i=-2
+#	instant_chi2r=chi2r[0]
+#	previous_chi2r=chi2r[1]
+#	while instant_chi2r<max_chi2r or (instant_chi2r>max_chi2r and (previous_chi2r-instant_chi2r)>0):
+#		previous_chi2r=instant_chi2r
+#		(instant_chi2r,exists)=remove_jump_add_phase(parFile,phase_jump_times,jump_index,i,max_chi2r)
+#		if exists==False:
+#			print("Tempo2 can't fit a solution beyond this point.")
+#			break
+#		phase.insert(0,i)
+#		chi2r.insert(0,instant_chi2r)
+#		i=i-1
 
 	chi2r=np.array(chi2r)
 	phase=np.array(phase)
