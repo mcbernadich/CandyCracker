@@ -11,6 +11,10 @@ from functools import partial
 def read_chi2r(parFile):
 	par_read=open(parFile,"r")
 	for line in par_read:
+		if line == "": #Fixing minor bugs due to empty lines.
+			line=line+" "
+		if line == "\n": #Fixing minor bugs due to empty lines.
+			line=" "+line
 		chunks = line.strip().split()
 		if chunks[0]=="CHI2R":
 			chi2r=float(chunks[1])
