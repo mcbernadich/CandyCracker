@@ -11,7 +11,7 @@ from functools import partial
 def read_chi2r(parFile):
 	par_read=open(parFile,"r")
 	for line in par_read:
-		if line == "": #Fixing minor bugs due to empty lines.
+		if line == "" or line == " " or line == "	": #Fixing minor bugs due to empty lines.
 			line="1 1"
 		if line == "\n": #Fixing minor bugs due to empty lines.
 			line="1 1\n"
