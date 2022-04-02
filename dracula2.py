@@ -231,13 +231,10 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 
 	# Check which component presents the lowest chi2r.
 	direction=chi2r.index(min(chi2r))
-	print(direction)
 
 	# Choose a direction based on this.
 
 	if direction==0: #We look for the minimum of the parabola on the left.
-
-		print("0")
 
 		# Walk backwards until we hit the chi2r or the max solutions wall.
 		i=-2
@@ -245,7 +242,6 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 		previous_chi2r=chi2r[1]
 		min_phase=-9999999999 #Just a dummy value that makes sure we don't have minima_phase-i > (max_solutions-1)/2 before the minimum is found.
 		while (instant_chi2r<max_chi2r or (instant_chi2r>max_chi2r and (previous_chi2r-instant_chi2r)>0)) and min_phase-i <= (max_solutions-1)/2: #While we haven't reached the max chi2r value, or we are going down in chi2r value, or we don't have the max amount of wanted solutions on one side.
-			print(min_phase-i, (max_solutions-1)/2)
 			previous_chi2r=instant_chi2r
 			(instant_chi2r,exists)=remove_jump_add_phase(parFile,phase_jump_times,jump_index,i,max_chi2r)
 			if exists==False:
@@ -273,15 +269,12 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 
 	if direction==2: #We look for the minimum of the parabola on the right. 
 
-		print("2")
-
 		# Walk forward until we hit the chi2r or the max solutions wall.
 		i=2
 		instant_chi2r=chi2r[2]
 		previous_chi2r=chi2r[1]
 		min_phase=9999999999
 		while (instant_chi2r<max_chi2r or (instant_chi2r>max_chi2r and (instant_chi2r-previous_chi2r)<0)) and i-min_phase <= (max_solutions-1)/2:
-			print(i-min_phase,(max_solutions-1)/2)
 			previous_chi2r=instant_chi2r
 			(instant_chi2r,exists)=remove_jump_add_phase(parFile,phase_jump_times,jump_index,i,max_chi2r)
 			if exists==False:
@@ -309,14 +302,11 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 
 	if direction==1: #The minimum of the oparabola is already known.
 
-		print("1")
-
 		# Walk forward until we hit the chi2r or the max solutions wall.
 		i=2
 		instant_chi2r=chi2r[2]
 		previous_chi2r=chi2r[1]
 		while (instant_chi2r<max_chi2r or (instant_chi2r>max_chi2r and (instant_chi2r-previous_chi2r)<0)) and i <= (max_solutions-1)/2:
-			print(i, (max_solutions-1)/2)
 			previous_chi2r=instant_chi2r
 			(instant_chi2r,exists)=remove_jump_add_phase(parFile,phase_jump_times,jump_index,i,max_chi2r)
 			if exists==False:
