@@ -240,12 +240,12 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 		right_chi2r=999999999.0
 
 	# Check which component presents the lowest chi2r.
-	if chi2r[0]!=chi2r[1] and chi2r[1]!=chi3r[2]:
+	if chi2r[0]!=chi2r[1] and chi2r[1]!=chi2r[2]:
 		direction=chi2r.index(min(chi2r))
 		starting_phase=2
 
 	# Make sure that we don't have a disaster here (erase ambiguity in case of similar numbers).
-	if chi2r[0]==chi2r[1] and chi2r[1]<chi3r[2]:
+	if chi2r[0]==chi2r[1] and chi2r[1]<chi2r[2]:
 		direction=0
 		starting_phase=2
 
