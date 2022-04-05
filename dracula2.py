@@ -313,7 +313,7 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 		previous_chi2r=middle_chi2r
 		min_phase=-9999999999 #Just a dummy value that makes sure we don't have min_phase-i > (max_solutions-1)/2 before the minimum is found.
 		min_phase_set=False
-		while (instant_chi2r<max_chi2r or (instant_chi2r>max_chi2r and (previous_chi2r-instant_chi2r)=>0)) and min_phase-i <= (max_solutions-1)/2: #While we haven't reached the max chi2r value, or we are going down in chi2r value, or we don't have the max amount of wanted solutions on one side.
+		while (instant_chi2r<max_chi2r or (instant_chi2r>max_chi2r and (previous_chi2r-instant_chi2r)>=0)) and min_phase-i <= (max_solutions-1)/2: #While we haven't reached the max chi2r value, or we are going down in chi2r value, or we don't have the max amount of wanted solutions on one side.
 			previous_chi2r=instant_chi2r
 			(instant_chi2r,exists)=remove_jump_add_phase(parFile,phase_jump_times,jump_index,i,max_chi2r)
 			if exists==False:
@@ -332,7 +332,7 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 		i=starting_phase
 		instant_chi2r=right_chi2r
 		previous_chi2r=middle_chi2r
-		while (instant_chi2r<max_chi2r or (instant_chi2r>max_chi2r and (instant_chi2r-previous_chi2r)=<0)) and i-min_phase <= (max_solutions-1)/2:
+		while (instant_chi2r<max_chi2r or (instant_chi2r>max_chi2r and (instant_chi2r-previous_chi2r)<=0)) and i-min_phase <= (max_solutions-1)/2:
 			previous_chi2r=instant_chi2r
 			(instant_chi2r,exists)=remove_jump_add_phase(parFile,phase_jump_times,jump_index,i,max_chi2r)
 			if exists==False:
@@ -352,7 +352,7 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 		previous_chi2r=middle_chi2r
 		min_phase=9999999999
 		min_phase_set=False
-		while (instant_chi2r<max_chi2r or (instant_chi2r>max_chi2r and (instant_chi2r-previous_chi2r)=<0)) and i-min_phase <= (max_solutions-1)/2:
+		while (instant_chi2r<max_chi2r or (instant_chi2r>max_chi2r and (instant_chi2r-previous_chi2r)<=0)) and i-min_phase <= (max_solutions-1)/2:
 			previous_chi2r=instant_chi2r
 			(instant_chi2r,exists)=remove_jump_add_phase(parFile,phase_jump_times,jump_index,i,max_chi2r)
 			if exists==False:
@@ -371,7 +371,7 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 		i=-starting_phase
 		instant_chi2r=left_chi2r
 		previous_chi2r=middle_chi2r
-		while (instant_chi2r<max_chi2r or (instant_chi2r>max_chi2r and (previous_chi2r-instant_chi2r)=>0)) and min_phase-i <= (max_solutions-1)/2:
+		while (instant_chi2r<max_chi2r or (instant_chi2r>max_chi2r and (previous_chi2r-instant_chi2r)>=0)) and min_phase-i <= (max_solutions-1)/2:
 			previous_chi2r=instant_chi2r
 			(instant_chi2r,exists)=remove_jump_add_phase(parFile,phase_jump_times,jump_index,i,max_chi2r)
 			if exists==False:
@@ -389,7 +389,7 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 		i=starting_phase
 		instant_chi2r=right_chi2r
 		previous_chi2r=middle_chi2r
-		while (instant_chi2r<max_chi2r or (instant_chi2r>max_chi2r and (instant_chi2r-previous_chi2r)=<0)) and i <= (max_solutions-1)/2:
+		while (instant_chi2r<max_chi2r or (instant_chi2r>max_chi2r and (instant_chi2r-previous_chi2r)<=0)) and i <= (max_solutions-1)/2:
 			previous_chi2r=instant_chi2r
 			(instant_chi2r,exists)=remove_jump_add_phase(parFile,phase_jump_times,jump_index,i,max_chi2r)
 			if exists==False:
@@ -403,7 +403,7 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 		i=-starting_phase
 		instant_chi2r=left_chi2r
 		previous_chi2r=middle_chi2r
-		while (instant_chi2r<max_chi2r or (instant_chi2r>max_chi2r and (previous_chi2r-instant_chi2r)=>0)) and -i <= (max_solutions-1)/2:
+		while (instant_chi2r<max_chi2r or (instant_chi2r>max_chi2r and (previous_chi2r-instant_chi2r)>=0)) and -i <= (max_solutions-1)/2:
 			previous_chi2r=instant_chi2r
 			(instant_chi2r,exists)=remove_jump_add_phase(parFile,phase_jump_times,jump_index,i,max_chi2r)
 			if exists==False:
