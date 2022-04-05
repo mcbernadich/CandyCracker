@@ -243,21 +243,25 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 	if chi2r[0]!=chi2r[1] and chi2r[1]!=chi2r[2]:
 		direction=chi2r.index(min(chi2r))
 		starting_phase=2
+		print("")
 		print("The slope is clear from the three chi2r values.")
 
 	# Make sure that we don't have a disaster here (erase ambiguity in case of similar numbers).
 	if chi2r[0]==chi2r[1] and chi2r[1]<chi2r[2]:
 		direction=0
 		starting_phase=2
+		print("")
 		print("Some ambiguity in the chi2r values, but a prefered direction is found.")
 
 	if chi2r[1]==chi2r[2] and chi2r[1]<chi2r[0]:
 		direction=2
 		starting_phase=2
+		print("")
 		print("Some ambiguity in the chi2r values, but a prefered direction is found.")
 
 	if chi2r[1]==chi2r[2] and chi2r[0]==chi2r[1]:   #Special case. Perhaps we are on a very smooth slope. It requires some thought.
 
+		print("")
 		print("All chi2r values are the same. Doing some further tests.")
 
 		(instant_chi2r,exists)=remove_jump_add_phase(parFile,phase_jump_times,jump_index,-2,max_chi2r)
@@ -300,7 +304,6 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 	if direction==0: #We look for the minimum of the parabola on the left.
 
 		print("Looking for the minima at negative phases.")
-		print("")
 
 		# Walk backwards until we hit the chi2r or the max solutions wall.
 		i=-starting_phase
@@ -341,7 +344,6 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 	if direction==2: #We look for the minimum of the parabola on the right. 
 
 		print("Looking for the minima at positive phases.")
-		print("")
 
 		# Walk forward until we hit the chi2r or the max solutions wall.
 		i=starting_phase
