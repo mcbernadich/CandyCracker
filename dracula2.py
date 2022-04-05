@@ -288,7 +288,6 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 
 		starting_phase=3
 
-
 	# Choose a direction based on this.
 
 	if direction==0: #We look for the minimum of the parabola on the left.
@@ -305,7 +304,7 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 			if exists==False:
 				print("Tempo2 can't fit a solution beyond this point.")
 				break
-			if (previous_chi2r-instant_chi2r)<0 and min_phase_set=False: #This means we have found the minima!
+			if (previous_chi2r-instant_chi2r)<0 and min_phase_set==False: #This means we have found the minima!
 				min_phase=i+1
 				min_phase_set=True
 			phase.insert(0,i)
@@ -340,7 +339,7 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 			if exists==False:
 				print("Tempo2 can't fit a solution beyond this point.")
 				break
-			if (previous_chi2r-instant_chi2r)<0 and min_phase_set=False:
+			if (previous_chi2r-instant_chi2r)<0 and min_phase_set==False:
 				min_phase=i-1
 			phase.append(i)
 			chi2r.append(instant_chi2r)
