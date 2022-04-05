@@ -210,7 +210,7 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 	print("Computing ramifications from solution "+parFile+".")
 
 	if max_solutions/2 == int(max_solutions/2): #Make sure that the maximum number of solutions is even (symmetry in parabola, including the middle point).
-		max_soultions=max_solutions+1
+		max_solutions=max_solutions+1
 	chi2r=[]
 	phase=[-1,0,1]
 
@@ -252,12 +252,14 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 		starting_phase=2
 		print("")
 		print("Some ambiguity in the chi2r values, but a prefered direction is found.")
+		max_solutions=max_solutions+2
 
 	if chi2r[1]==chi2r[2] and chi2r[1]<chi2r[0]:
 		direction=2
 		starting_phase=2
 		print("")
 		print("Some ambiguity in the chi2r values, but a prefered direction is found.")
+		max_solutions=max_solutions+2
 
 	if chi2r[1]==chi2r[2] and chi2r[0]==chi2r[1]:   #Special case. Perhaps we are on a very smooth slope. It requires some thought.
 
@@ -291,6 +293,7 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 			direction=1
 			print("")
 			print("Minimum found or ambiguity persists. Assuming that we are at a minimum.")
+			max_solutions=max_solutions+2
 
 		else:
 
@@ -298,6 +301,7 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 			direction=dummy_array.index(min(dummy_array))
 			print("")
 			print("A prefered direction has been found.")
+			max_solutions=max_solutions+4
 
 		starting_phase=3
 
@@ -323,7 +327,7 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 				min_phase=i+1
 				min_phase_set=True
 				print("")
-				print("Minima found at phase turn",min_phase)
+				print("Minimum found at phase turn",min_phase)
 			phase.insert(0,i)
 			chi2r.insert(0,instant_chi2r)
 			i=i-1
@@ -362,7 +366,7 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 				min_phase=i-1
 				min_phase_set=True
 				print("")
-				print("Minima found at phase turn",min_phase)
+				print("Minimum found at phase turn",min_phase)
 			phase.append(i)
 			chi2r.append(instant_chi2r)
 			i=i+1
@@ -383,7 +387,7 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 
 	if direction==1: #The minimum of the oparabola is already known.
 
-		print("Phase turn 0 (no turn) is the minimum.")
+		print("Phase turn 0 (no turns) is the minimum.")
 
 		# Walk forward until we hit the chi2r or the max solutions wall.
 		i=starting_phase
@@ -470,7 +474,7 @@ parser=argparse.ArgumentParser(description="Take in a tempo2 parameter file and 
 parser.add_argument("-p","--parameter",help="Tempo2 parameter file WITHOUT 'JUMP MJD' or 'PHASE' statements. There can be other kinds of jumps, but the last observation MUST either NOT be jumped, or have its jump value FIXED. For instance, if you have backend jumps, the backend with the last observation should be the non-jumped one. Only parameters with 1 will be fit.")
 parser.add_argument("-t","--tim",help="Tempo2 tim file. It requires: observation name in the 1st column, and ToA in the third columns.")
 parser.add_argument("--max_chi2r",type=float,help="Largest acceptable chi2r value for a solution. Default: 2.0",default=2.0)
-parser.add_argument("--max_solutions",type=int,help="Largest amount of solutions that are taken from each jump removal attempt. Default: 5",default=5)
+parser.add_argument("--max_solutions",type=int,help="Largest amount of solutions that are taken from each jump removal attempt. The code will padd this number a bit is ambiguities are found in some jump removals. Default: 5",default=5)
 parser.add_argument("--n_gulp",type=int,help="Number of jumps to remove at the same time (multithreading). The on-screen outputs become funky. Default: a single thread (serial).")
 parser.add_argument("--pre_fits",type=int,help="Number of fits done to the initial file once jumps are added.",default=1)
 parser.add_argument("--par_with_jumps",type=bool,help="If set, then jumps are assumed to be added manually and they are are not added by dracula2. Make sure that they are in the correct format!",default=False)
