@@ -5,6 +5,7 @@ import argparse
 import glob
 import multiprocessing as multi
 from functools import partial
+from contextlib import closing
 
 
 # libstempo is unable to read CHI2R from the PAR, so I did it myself.
@@ -531,6 +532,9 @@ while i<n_jumps:
 				dummy_array=multiprocesses.map(partial(find_chi2r_interval,phase_jump_times=phase_jumps_times,jump_index=ordering[i],max_chi2r=args.max_chi2r,max_solutions=args.max_solutions),parFiles[j:j+args.n_gulp])
 				j=j+args.n_gulp
 
+
+				multiprocesses.close()
+				multiprocesses.join()
 				j=j+1
 
 		else:
