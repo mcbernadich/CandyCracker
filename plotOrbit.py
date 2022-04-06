@@ -58,7 +58,7 @@ def read_ephemeris(file):
 			omega=float(line[2:])
 		elif line[:2]=="T0":
 			periastron=float(line[2:])
-	if f0 and p_orb and x and periastron and ecc and omega:
+	if f0 and p_orb and x and periastron:
 		print("Pulsar parameters loaded from {}:".format(file))
 		print("- Pulsar frequency: {} Hz".format(f0))
 		print("- Orbital period: {} days".format(p_orb))
@@ -73,10 +73,11 @@ def read_ephemeris(file):
 parser=argparse.ArgumentParser(description="Take in barycentric data at each epoch, an orbital model, and plot for your eyes to enjoy.")
 parser.add_argument("data",help="File with columns of 1) MJD, 2) period and 3) uncertainty (or 3) derivatives, 4) derivative uncertainty).")
 parser.add_argument("--ephemeris",help="Fitorbit-format ephemeris.")
-parser.add_argument("-p","--period",help="Units of period. Default: 'ms'.",choices=["s","ms","s-1"])
-parser.add_argument("-d","--derivative",help="Units of derivative. Default: 's/s'.",choices=["s/s","s-2","m/s2"])
+parser.add_argument("-p","--period",help="Units of period values. Default: 'ms'.",choices=["s","ms","s-1"])
+parser.add_argument("-d","--derivative",help="Units of derivative values. Default: 's/s'.",choices=["s/s","s-2","m/s2"])
 parser.add_argument("-r","--range",help="Range of data lines to be read 'min:max'. Default: '0:inf'.")
 parser.add_argument("-m","--method",help="Method to plot the data with.",choices=["acc-p","p-phase"])
+parser.add_argument("--residuals",action="store_true",help="Print and store the period residuals of data vs model")
 parser.add_argument("-v","--verbose",action="store_true")
 args = parser.parse_args()
 
@@ -125,9 +126,9 @@ else:
 
 if p_units=="s-1":
 	history[1]=1/history[1]
-	if model!="ellipse":
+	if model!="acc-p":
 		history[2]=history[2]/np.square(history[1])
-		
+
 if p_units=="ms":
 	history[1]=history[1]/1000
 	if model!="acc-p":
@@ -187,9 +188,15 @@ elif fit == True and model == "p-phase":
 	plt.errorbar((folded_epochs-reduced_periastron)/p_orb,history[1]*1000,history[2]*1000,fmt="o")
 	plt.plot([],[]," ",label="$P_p$ = {} ms, $P_o$ = {} d,\n$x$ = {} ls, $ecc$ = {},\n$\omega$ = {}º, $T_0$= {} MJD".format(round(1000/f0,3),round(p_orb,3),round(x,3),round(ecc,3),round(omega,3),round(periastron,3)))
 	plt.ylabel("$P_{bary}$ (ms)")
-	plt.xlabel("time from periastron (phase)")
+	plt.xlabel("Mean anomaly (phase)")
 	plt.title(args.data.split(".")[0].split("/")[-1])
 	plt.legend()
 	plt.tight_layout()
 	plt.xlim(0,1)
 	plt.show()
+
+	if arg.resiudals:
+
+		# Completa això per entendre què està passant.
+
+		print("Epoch, residuals (ms), residuals (periods)")
