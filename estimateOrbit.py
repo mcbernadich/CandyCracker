@@ -134,6 +134,111 @@ def fit_roughness(epochs,periods,errors,period_range="none"):
 
 	return (best_porb,trial_porbs,roughness)
 
+def fit_poly(epochs,periods,errors,degree=4,period_range="none"):
+
+	import time
+
+	sorted_epochs=np.sort(epochs)
+	interval=sorted_epochs[-1]-sorted_epochs[0]
+	if period_range != "none":
+		trial_porb=float(period_range.split(":")[0])
+		last_porb=float(period_range.split(":")[1])
+	else:
+		trial_porb=0.041
+		last_porb=interval
+	smallest_interval=np.min(sorted_epochs[1:]-sorted_epochs[:-1])
+	epochs=epochs-sorted_epochs[0]
+	sorting_old=np.argsort(epochs)
+
+	print("Searching for best orbital period in between {} and {} days...".format(trial_porb,last_porb))
+	print("")
+
+	variance=[]
+	trial_porbs=[]
+	unsolvable_knots=0
+	correction_attempts=0
+	i=0
+
+	start=time.time()
+
+	# Start Kernel.
+
+	while trial_porb <= last_porb:
+
+		if np.mod(i,10000)==0:
+			print("Current period: {} days. Current step: {} days".format(trial_porb,1e-2*(trial_porb**2)/(2*np.pi*interval)))
+		folded_epochs=epochs-(epochs//trial_porb)*trial_porb
+		sorting=np.argsort(folded_epochs)
+
+		# Consistency check.
+		if (sorting!=sorting_old).any() and i!=0:
+			iterations=0
+			good_to_go=False
+			while good_to_go==False and iterations<=30:
+				likelihood=(sorting==sorting_old)
+				# First, check if a single alone can explain the shift (first point always the same, therefore excluded).
+				if (np.roll(sorting[1:],1)==sorting_old[1:]).all():
+					good_to_go=True					
+				# If not, check if a single permutation can explain the difference.
+				elif likelihood[np.where(likelihood==False)].size==2:
+					good_to_go=True
+				# If none of the previous, start going back and forth with the steps until one of the preious holds.
+				if (sorting!=sorting_old).any() and good_to_go==False:
+					step=step/2
+					trial_porb=trial_porb-step
+					folded_epochs=epochs-(epochs//trial_porb)*trial_porb
+					sorting=np.argsort(folded_epochs)
+				if (sorting==sorting_old).all() and good_to_go==False:
+					step=step/2
+					trial_porb=trial_porb+step
+					folded_epochs=epochs-(epochs//trial_porb)*trial_porb
+					sorting=np.argsort(folded_epochs)
+				iterations=iterations+1
+			if iterations>1 and good_to_go==True:
+				correction_attempts=correction_attempts+1
+			if iterations==31 and good_to_go==False:
+				step=old_step
+				trial_porb=trial_porb_old+step
+				folded_epochs=epochs-(epochs//trial_porb)*trial_porb
+				sorting=np.argsort(folded_epochs)
+				correction_attempts=correction_attempts+1
+				unsolvable_knots=unsolvable_knots+1
+		# -----------------------------------------------------------------------
+		
+		folded_periods=periods[sorting]
+		folded_phases=folded_epochs[sorting]/trial_porb
+		phase_difference=np.roll(folded_phases,-1)-folded_phases
+		phase_difference[ phase_difference <= 0 ] = phase_difference[ phase_difference <= 0 ] + 1
+		variance.append(np.sum((folded_periods - np.polyval(np.polyfit(folded_phases, folded_periods, deg=degree), folded_phases))**2))
+		trial_porbs.append(trial_porb)
+		# For consistency check
+		trial_porb_old=trial_porb
+		sorting_old=sorting
+		step=1e-2*(trial_porb**2)/(2*np.pi*interval)
+		old_step=step
+		# -------------------------------------------------------------------------
+		trial_porb=trial_porb+step
+		i=i+1
+
+	# End Kernel.
+
+	print("Run time: {} s".format(time.time()-start))
+
+	variance=np.array(variance)
+	trial_porbs=np.array(trial_porbs)
+	print("Total number of trials: {}".format(np.size(variance)))
+	print("Number of correction attempts: {}".format(correction_attempts))
+	print("Number of unsolvable knots: {}".format(unsolvable_knots))
+	print("Succesful corrections: {}".format(correction_attempts-unsolvable_knots))
+
+	best_porb=trial_porbs[np.argmin(variance)]
+
+	print("")
+	print("Best orbital period= {} days".format(best_porb))
+	print("")
+
+	return (best_porb,trial_porbs,variance)
+
 def fit_LombScargle(epochs,periods,errors,period_range="none"):
 
 	from gatspy.periodic import LombScargle
@@ -195,8 +300,9 @@ parser.add_argument("data",help="File with columns of 1) MJD, 2) period and 3) u
 parser.add_argument("-p","--period",help="Units of period. Default: 'ms'.",choices=["s","ms","s-1"])
 parser.add_argument("-d","--derivative",help="Units of derivative. Default: 's/s'.",choices=["s/s","s-2","m/s2"])
 parser.add_argument("-r","--range",help="Range of data lines to be read 'min:max'. Default: '0:inf'.")
-parser.add_argument("-m","--method",help="Method to fit the data with. If not specified, a time series is plotted.",choices=["ellipse","roughness","Lomb-Scargle","folding"])
-parser.add_argument("--period_range",help="Custom orbital period search range in days for -m 'roughness' and 'Lomb-Scargle'. 'min:max' in days")
+parser.add_argument("-m","--method",help="Method to fit the data with. If not specified, a time series is plotted.",choices=["ellipse","roughness","polynomial","Lomb-Scargle","folding"])
+parser.add_argument("--period_range",help="Custom orbital period search range in days for -m 'roughness', 'polynomial' and 'Lomb-Scargle'. 'min:max' in days")
+parser.add_argument("--degree",type=int,help="Custom degree of polynomial for -m 'polynomial'. Default: 4")
 parser.add_argument("--folding_period",type=float,help="Custom orbital period to fold with in case of -m 'folding', in days")
 parser.add_argument("-M","--methods",help="Print details about methods.",action="store_true")
 parser.add_argument("-v","--verbose",action="store_true")
@@ -206,18 +312,24 @@ if args.methods:
 	print("Currently, there are 2 models t fit the data with:")
 	print("")
 	print(" - Ellipse:")
-	print("   It reads the 2nd (Period), 3rd (Derivative) and 4th (Derivative uncertainty) columns of data and apply Freire, Kramer & Lyne (2000). It fits a parabola on the absolute values of acceleration in function of baricentric period. The coefficients tell you about the orbit. Very good if you have good period and derivative values and the orbit is not excentric.")
+	print("   Read the 2nd (Period), 3rd (Derivative) and 4th (Derivative uncertainty) columns of data and apply Freire, Kramer & Lyne (2000). It fits a parabola on the absolute values of acceleration in function of baricentric period. The coefficients tell you about the orbit. Very good if you have good period and derivative values and the orbit is not excentric.")
 	print("")
 	print(" - Roughness:")
-	print("   It reads the 1st (MJD) and 2nd (Period) columns of data and apply Bhattacharyya & Nityananda (2008). It folds your data points at consecutive trial periods in between 1 hour and the duration of the data set, estimating a roughness value that should be minimal at the true period. It can take a long time to run, but is is very useful if the orbit is very eccentric or you don't have good derivative measureements.")
+	print("   Read the 1st (MJD) and 2nd (Period) columns of data and apply Bhattacharyya & Nityananda (2008). It folds your data points at consecutive trial periods in between 1 hour and the duration of the data set, estimating a roughness value that should be minimal at the true period. It is very useful if the orbit is very eccentric or you don't have good derivative measureements.")
 	print("   If '--period_range' is specified, then the orbital period search range is restricted in days to the custom values.")
+	print("")
+	print(" - Variance:")
+	print("   Read the 1st (MJD) and 2nd (Period) columns and fit a 4-degree polynomial. It folds your data points at consecutive trial periods in between 1 hour and the duration of the data set, estimating a variance value that should be minimal at the true period. It can take a long time to run, but it is more effective than roughness.")
+	print("   If '--period_range' is specified, then the orbital period search range is restricted in days to the custom values.")
+	print("   Specify '--degree' to decidy the degree of the polynomial.")	
+	print("")
 	print(" - Lomb-Scargle:")
-	print("   It reads the 1st (MJD) and 2nd (Period) columns of data and computes a Lomb-Scargle diagrame to search the best period in between 1 hour and the duration of the data set. Useful if you don't have good derivative measurements, much faster than the roughness algorithm, but less sensible to highly eccentric orbits.")
+	print("   Read the 1st (MJD), 2nd (Period) and 3rd (Period uncertainty) columns of data and compute a Lomb-Scargle diagrame to search the best period in between 1 hour and the duration of the data set. Useful if you don't have good derivative measurements, much faster than the roughness algorithm, but less sensible to highly eccentric orbits.")
 	print("   If '--period_range' is specified, then the orbital period search range is restricted in days to the custom values.")
+	print("")
 	print(" - Folding:")
 	print("   It just folds the series at a chosen orbital period, in case you want to do trial and error yourself.")
 	print("   '--folding_period' must then be specified.")	
-
 	print("")
 	exit()
 
@@ -255,9 +367,11 @@ if args.method:
 	model=args.method
 	if args.period_range:
 		period_range=args.period_range
+	if args.degree:
+		degree=args.degree
 	if args.verbose:
 		print("The data will be fitted with the following method: "+args.method)
-		if model=="roughness" and args.period_range:
+		if (model=="roughness" or model=="Lomb-Scargle" or model=="polynomical") and args.period_range:
 			print("The folding range will be of "+period_range+" days.")
 		print("Write '-M' to know more about the models.")
 		print("")
@@ -304,6 +418,16 @@ if fit==True:
 			(p_orb,trial_porbs,roughness)=fit_roughness(history[0],history[1],history[2],period_range=period_range)
 		else:
 			(p_orb,trial_porbs,roughness)=fit_roughness(history[0],history[1],history[2])
+		plot_fit=True
+	elif model == "polynomial":
+		if args.period_range and args.degree:
+			(p_orb,trial_porbs,variance)=fit_poly(history[0],history[1],history[2],degree=degree,period_range=period_range)			
+		elif args.period_range:
+			(p_orb,trial_porbs,variance)=fit_poly(history[0],history[1],history[2],period_range=period_range)
+		elif args.period_range:
+			(p_orb,trial_porbs,variacne)=fit_poly(history[0],history[1],history[2],degree=degree)
+		else:
+			(p_orb,trial_porbs,roughness)=fit_poly(history[0],history[1],history[2])
 		plot_fit=True
 	elif model == "Lomb-Scargle":
 		if args.period_range:
@@ -356,6 +480,28 @@ elif fit == True and model == "roughness":
 	plt.plot(trial_porbs,np.max(roughness)/roughness)
 	plt.plot([],[]," ",label="$P_{orb}=$ "+str(round(p_orb,5))+" d")
 	plt.ylabel("Reciprocal $Roughness$")
+	plt.xlabel("Trial orbital period (days)")
+	plt.title(args.data.split(".")[0].split("/")[-1])
+	plt.legend()
+	plt.tight_layout()
+	plt.show()
+
+	epochs=history[0,:]-np.min(history[0,:])
+	folded_epochs=epochs-(epochs//p_orb)*p_orb
+	plt.errorbar(folded_epochs,history[1]*1000,history[2]*1000,fmt="o")
+	plt.plot([],[]," ",label="$P_{orb}=$ "+str(round(p_orb,5))+" d")
+	plt.ylabel("$P_{bary}$ (ms)")
+	plt.xlabel("time (days)")
+	plt.title(args.data.split(".")[0].split("/")[-1])
+	plt.tight_layout()
+	plt.legend()
+	plt.show()
+
+elif fit == True and model == "polynomial":
+	
+	plt.plot(trial_porbs,np.max(variance)/variance)
+	plt.plot([],[]," ",label="$P_{orb}=$ "+str(round(p_orb,5))+" d")
+	plt.ylabel("Reciprocal $Variance$")
 	plt.xlabel("Trial orbital period (days)")
 	plt.title(args.data.split(".")[0].split("/")[-1])
 	plt.legend()
