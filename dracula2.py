@@ -9,7 +9,7 @@ from contextlib import closing
 
 
 # libstempo is unable to read CHI2R from the PAR, so I did it myself.
-def read_chi2r(parFile):
+def read_chi2r_from_par(parFile):
 	par_read=open(parFile,"r")
 	for line in par_read:
 		if line == "" or line == " " or line == "	": #Fixing minor bugs due to empty lines.
@@ -21,6 +21,13 @@ def read_chi2r(parFile):
 			chi2r=float(chunks[1])
 	return chi2r
 
+# Read a higher resolution version of the chi2r.
+def read_chi2r_from_logs(tempo2logs):
+	for line in tempo2logs.split("\n"):
+		if line[0:11]=="Fit Chisq =":
+			chi2r=float(line.split("=")[3].split("	")[0])
+			break
+	return chi2r
 
 # Read a PAR file, add JUMPS MJD statements for each osbervation except the last one,
 # and fit all of the parameters (with 1 in the PAR) and the JUMP MJD statements.
@@ -100,7 +107,7 @@ def add_jumps_and_fit(parFile,timFile,skipJumps,nFits):
 	print(" ")
 	print("Number of jumps:",jumps)
 	print("Number of ToAs:",nToAs)
-	chi2r=read_chi2r(parFile_jumps)
+	chi2r=read_chi2r_from_par(parFile_jumps)
 	print("CHI2R:",chi2r)
 
 	return jumps,chi2r,time_intervals,phase_jumps_times
@@ -174,16 +181,17 @@ def remove_jump_add_phase(parFile_jumps,phase_jump_times,jump_index,phase,max_ch
 
 	par_write.close()
 
-	# Fit!
-	subprocess.run(["tempo2","-f",parFile_phases,timFile,"-outpar",parFile_phases.split(".")[0]+"_solution_candidate.par"],stdout=subprocess.DEVNULL)
+	# Fit! Also, store the output to read the chi2r, whih has a higher resolution thatn the one in the parameter file.
+	subrun=subprocess.run(["tempo2","-f",parFile_phases,timFile,"-outpar",parFile_phases.split(".")[0]+"_solution_candidate.par"],stdout=subprocess.PIPE)
 
 	# Check if the fit has not crashed (solution_candidate exists.)
 	solution_exists=exists(parFile_phases.split(".")[0]+"_solution_candidate.par")
 
 	# Read the resulting chi2. Preserve the par file only if chi2r<2.
 	subprocess.run(["mv",parFile_phases.split(".")[0]+"_solution_candidate.par",parFile_phases],stdout=subprocess.DEVNULL)
-	chi2r=read_chi2r(parFile_phases)
+	chi2r=read_chi2r_from_par(parFile_phases) #Preliminarily, read the chi2r from the parameter file
 	if chi2r<max_chi2r and solution_exists==True:
+		chi2r=read_chi2r_from_logs(subrun.stdout.decode()) #Get the higher res version of the chi2r
 		# We remove the phase jump for the future use of the par file.
 		par_read=open(parFile_phases,"r")
 		par_write=open(parFile_phases+"a","w")
@@ -197,6 +205,7 @@ def remove_jump_add_phase(parFile_jumps,phase_jump_times,jump_index,phase,max_ch
 #		subprocess.run(["tempo2","-f",parFile_phases,timFile,"-outpar",parFile_phases],stdout=subprocess.DEVNULL)
 		print("CHI2R=",chi2r)
 	elif solution_exists==True:
+		chi2r=read_chi2r_from_logs(subrun.stdout.decode()) #Get the higher res version of the chi2r
 		subprocess.run(["rm",parFile_phases],stdout=subprocess.DEVNULL)
 		print("CHI2R=",chi2r)
 	else:
