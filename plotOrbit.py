@@ -44,20 +44,19 @@ def read_ephemeris(file):
 	ecc=0
 	omega=0
 	for line in ephemeris:
-		line=line.replace(" ","")
-		line=line.replace("	","")
-		if line[:2]=="F0":
-			f0=float(line[2:])
-		elif line[:2]=="PB":
-			p_orb=float(line[2:])
-		elif line[:2]=="A1":
-			x=float(line[2:])
-		elif line[:3]=="ECC":
-			ecc=float(line[3:])
-		elif line[:2]=="OM":
-			omega=float(line[2:])
-		elif line[:2]=="T0":
-			periastron=float(line[2:])
+		line = line.strip().split()
+		if line[0]=="F0":
+			f0=float(line[1])
+		elif line[0]=="PB":
+			p_orb=float(line[1])
+		elif line[0]=="A1":
+			x=float(line[1])
+		elif line[0]=="ECC":
+			ecc=float(line[1])
+		elif line[0]=="OM":
+			omega=float(line[1])
+		elif line[0]=="T0":
+			periastron=float(line[1])
 	if f0 and p_orb and x and periastron:
 		print("Pulsar parameters loaded from {}:".format(file))
 		print("- Pulsar frequency: {} Hz".format(f0))
@@ -166,7 +165,7 @@ elif fit == True and model == "acc-p":
 
 	plt.errorbar(1000*history[1],history[2],yerr=history[3],fmt="o")
 	plt.plot(1000*periods,accelerations,"c-")
-	plt.plot([],[]," ",label="$P_p$ = {} ms,\n$P_o$ = {} d, $x$ = {} ls,\n$ecc$ = {}, $\omega$ = {}º".format(round(1000/f0,3),round(p_orb,3),round(x,3),round(ecc,3),round(omega,3)))
+	plt.plot([],[]," ",label="$P_0$ = {} ms,\n$P_B$ = {} d, $x$ = {} ls,\n$ecc$ = {}, $\omega$ = {}º".format(round(1000/f0,3),round(p_orb,3),round(x,3),round(ecc,3),round(omega,3)))
 	plt.ylabel("$acc$ (m/s$^2$)")
 	plt.xlabel("$P_{bary}$ (ms)")
 	plt.title(args.data.split(".")[0].split("/")[-1])
@@ -186,7 +185,7 @@ elif fit == True and model == "p-phase":
 
 	plt.plot((time-reduced_periastron)/p_orb,1000*periods,"c-")
 	plt.errorbar((folded_epochs-reduced_periastron)/p_orb,history[1]*1000,history[2]*1000,fmt="o")
-	plt.plot([],[]," ",label="$P_p$ = {} ms, $P_o$ = {} d,\n$x$ = {} ls, $ecc$ = {},\n$\omega$ = {}º, $T_0$= {} MJD".format(round(1000/f0,3),round(p_orb,3),round(x,3),round(ecc,3),round(omega,3),round(periastron,3)))
+	plt.plot([],[]," ",label="$P_0$ = {} ms, $P_B$ = {} d,\n$x$ = {} ls, $ecc$ = {},\n$\omega$ = {}º, $T_0$= {} MJD".format(round(1000/f0,3),round(p_orb,3),round(x,3),round(ecc,3),round(omega,3),round(periastron,3)))
 	plt.ylabel("$P_{bary}$ (ms)")
 	plt.xlabel("Mean anomaly (phase)")
 	plt.title(args.data.split(".")[0].split("/")[-1])
@@ -195,7 +194,7 @@ elif fit == True and model == "p-phase":
 	plt.xlim(0,1)
 	plt.show()
 
-	if arg.resiudals:
+	if args.resiudals:
 
 		# Completa això per entendre què està passant.
 

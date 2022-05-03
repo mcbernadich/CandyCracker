@@ -207,8 +207,6 @@ def fit_poly(epochs,periods,errors,degree=4,period_range="none"):
 		
 		folded_periods=periods[sorting]
 		folded_phases=folded_epochs[sorting]/trial_porb
-		phase_difference=np.roll(folded_phases,-1)-folded_phases
-		phase_difference[ phase_difference <= 0 ] = phase_difference[ phase_difference <= 0 ] + 1
 		variance.append(np.sum((folded_periods - np.polyval(np.polyfit(folded_phases, folded_periods, deg=degree), folded_phases))**2))
 		trial_porbs.append(trial_porb)
 		# For consistency check
