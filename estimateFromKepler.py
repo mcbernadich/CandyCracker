@@ -55,20 +55,19 @@ def read_ephemeris(file):
 	ecc=0
 	omega=0
 	for line in ephemeris:
-		line=line.replace(" ","")
-		line=line.replace("	","")
-		if line[:2]=="F0":
-			f0=float(line[2:])
-		elif line[:2]=="PB":
-			p_orb=float(line[2:])
-		elif line[:2]=="A1":
-			x=float(line[2:])
-		elif line[:3]=="ECC":
-			ecc=float(line[3:])
-		elif line[:2]=="OM":
-			omega=float(line[2:])
-		elif line[:2]=="T0":
-			periastron=float(line[2:])
+		line = line.strip().split()
+		if line[0]=="F0":
+			f0=float(line[1])
+		elif line[0]=="PB":
+			p_orb=float(line[1])
+		elif line[0]=="A1":
+			x=float(line[1])
+		elif line[0]=="ECC":
+			ecc=float(line[1])
+		elif line[0]=="OM":
+			omega=float(line[1])
+		elif line[0]=="T0":
+			periastron=float(line[1])
 	if f0 and p_orb and x and periastron:
 		print("Pulsar parameters loaded from {}:".format(file))
 		print("- Pulsar frequency: {} Hz".format(f0))
@@ -231,12 +230,12 @@ if mcomp_from_massfunction==True:
 	plt.plot(masses,masses_equation,"c-",label="$M_1$ = {} M$_\odot$".format(mpulsar))
 
 	if args.inclination:
-		plt.hlines(mass_function_custom,max(mcomp_min-2,0),mcomp_max+2,color="blue",linestyles="--",label="$P_o$ = {} d, $a\\times sin(i = {}$º$)$ = {} ls".format(round(p_orb,2),args.inclination,round(x,2)))
+		plt.hlines(mass_function_custom,max(mcomp_min-2,0),mcomp_max+2,color="blue",linestyles="--",label="$P_B$ = {} d, $a\\times sin(i = {}$º$)$ = {} ls".format(round(p_orb,2),args.inclination,round(x,2)))
 		plt.vlines(mcomp_custom,np.min(masses_equation),np.max(masses_equation),color="red",linestyles="--",label="$M_2$ (i = {}$º$) = {} M$_\odot$".format(args.inclination,round(mcomp_custom,3)))
 		plt.plot([mcomp_custom],[mass_function_custom],"ro")
 	else:
 		plt.hlines(mass_function_min,max(mcomp_min-2,0),mcomp_max+2,color="blue",linestyles="--")
-		plt.hlines(mass_function_median,max(mcomp_min-2,0),mcomp_max+2,color="blue",linestyles="--",label="$P_o$ = {} d, $a\\times sin(i = 90, 60, 45$º$)$ = {} ls".format(round(p_orb,2),round(x,2)))
+		plt.hlines(mass_function_median,max(mcomp_min-2,0),mcomp_max+2,color="blue",linestyles="--",label="$P_B$ = {} d, $a\\times sin(i = 90, 60, 45$º$)$ = {} ls".format(round(p_orb,2),round(x,2)))
 		plt.hlines(mass_function_max,max(mcomp_min-2,0),mcomp_max+2,color="blue",linestyles="--")
 		plt.vlines(mcomp_min,np.min(masses_equation),np.max(masses_equation),color="red",linestyles="--")
 		plt.vlines(mcomp_median,np.min(masses_equation),np.max(masses_equation),color="red",linestyles="--",label="$M_2 (i = 90, 60, 45$º$)$ = {},{},{} M$_\odot$".format(round(mcomp_min,3),round(mcomp_median,3),round(mcomp_max,3)))

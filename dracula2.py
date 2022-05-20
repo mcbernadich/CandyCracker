@@ -19,6 +19,7 @@ def read_chi2r_from_par(parFile):
 		chunks = line.strip().split()
 		if chunks[0]=="CHI2R":
 			chi2r=float(chunks[1])
+	par_read.close()
 	return chi2r
 
 # Read a higher resolution version of the chi2r.
@@ -55,7 +56,7 @@ def add_jumps_and_fit(parFile,timFile,skipJumps,nFits):
 			print("Reading ToAs and computing jumps.")
 			par_write.write("\n")
 		else:
-			line=line.split(" ")
+			line=line.trim().split()
 			obs=line[0]
 			time=float(line[2])
 			if i==1:
