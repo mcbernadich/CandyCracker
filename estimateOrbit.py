@@ -22,9 +22,9 @@ def fit_ellipse(periods,derivatives,errors):
 	print("Spin period= {} ms".format(period*1000))
 	print("Orbital period= {} days".format(p_orb/24/3600))
 	print("Projected axis= {} ls".format(axis))
-	phase=np.arctan(-history[2]/(acc_amp*(history[1]-period)*history[1]))
-	per_epoch=history[0]-phase*p_orb/(2*np.pi*24*3600)
-	print("First epoch of periastron= {} MJD".format(per_epoch[0]))
+#	phase=np.arctan(-history[2]/(acc_amp*(history[1]-period)*history[1]))
+#	per_epoch=history[0]-phase*p_orb/(2*np.pi*24*3600)
+#	print("First epoch of periastron= {} MJD".format(per_epoch[0]))
 	print("")
 
 	return (period,p_orb,axis,acc_amp,p_amp,coeff)
@@ -409,7 +409,7 @@ if pdot_units=="s-2" and model=="ellipse":
 
 if fit==True:
 	if model == "ellipse":
-		(period,p_orb,axis,acc_amp,p_amp,coeff)=fit_ellipse(history[1],history[2])
+		(period,p_orb,axis,acc_amp,p_amp,coeff)=fit_ellipse(history[1],history[2],history[3])
 		plot_fit=True
 	elif model == "roughness":
 		if args.period_range:

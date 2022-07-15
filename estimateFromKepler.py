@@ -8,45 +8,45 @@ import sys
 def mass_equation(M,p_orb,a,mpulsar):
 	p_orb=p_orb*24*3600
 	a=299792458*a
-	return M**3-(mpulsar+M)**2*4*np.pi**2*a**3/(p_orb**2*6.67408e-11)/1.9891e30
+	return M**3-(mpulsar+M)**2*4*np.pi**2*a**3/(p_orb**2*6.67430e-11)/1.9891e30
 
 def mass_equation_derivative(M,p_orb,a,mpulsar):
 	p_orb=p_orb*24*3600
 	a=299792458*a
-	return 3*M**2-(mpulsar+M)*8*np.pi**2*a**3/(p_orb**2*6.67408e-11)/1.9891e30
+	return 3*M**2-(mpulsar+M)*8*np.pi**2*a**3/(p_orb**2*6.67430e-11)/1.9891e30
 
 def periastron_advance(p_orb,ecc,Mtot):
 	Mtot=Mtot*1.9891e30
 	p_orb=p_orb*24*3600
-	cnt=3*(6.67408e-11/299792458**3)**(2/3)*(p_orb/(2*np.pi))**(-5/3)/(1-ecc**2)
+	cnt=3*(6.67430e-11/299792458**3)**(2/3)*(p_orb/(2*np.pi))**(-5/3)/(1-ecc**2)
 	return cnt*Mtot**(2/3)
 
 def orbital_decay(p_orb,ecc,Mchirp):
 	Mchirp=Mchirp #In kg already
 	p_orb=p_orb*24*3600
-	cnt=(192*np.pi/5)*(6.67408e-11/299792458**3)**(5/3)*(p_orb/(2*np.pi))**(-5/3)*(1+(73/23)*ecc**2+(37/96)*ecc**4)/(1-ecc**2)**(7/2)
+	cnt=(192*np.pi/5)*(6.67430e-11/299792458**3)**(5/3)*(p_orb/(2*np.pi))**(-5/3)*(1+(73/23)*ecc**2+(37/96)*ecc**4)/(1-ecc**2)**(7/2)
 	return cnt*Mchirp
 
 def axis_decay(p_orb,ecc,Mxdot):
 	p_orb=p_orb*24*3600
 	Mxdot=Mxdot #In kg already
-	cnt=(64/5)*299792458*(6.67408e-11/299792458**3)**2*(2*np.pi/p_orb)**2*((1+(73/23)*ecc**2+(37/96)*ecc**4)/(1-ecc**2)**(7/2))
+	cnt=(64/5)*299792458*(6.67430e-11/299792458**3)**2*(2*np.pi/p_orb)**2*((1+(73/23)*ecc**2+(37/96)*ecc**4)/(1-ecc**2)**(7/2))
 	return cnt*Mxdot
 
 def einstein_delay(p_orb,ecc,Mgamma):
 	Mgamma=Mgamma
 	p_orb=p_orb*24*3600
-	gamma=ecc*(6.67408e-11/299792458**3)**(2/3)*(p_orb/(2*np.pi))**(1/3)
+	gamma=ecc*(6.67430e-11/299792458**3)**(2/3)*(p_orb/(2*np.pi))**(1/3)
 	return gamma*Mgamma
 
 def shapiro_delay_full(Mcomp,s):
 	Mcomp=Mcomp*1.9891e30
-	r=6.67408e-11*Mcomp/299792458**3
+	r=6.67430e-11*Mcomp/299792458**3
 	return -2*r*(np.log(1-s)-np.log(1+s))
 
 def shapiro_delay_third(Mcomp,s):
 	Mcomp=Mcomp*1.9891e30
-	r=6.67408e-11*Mcomp/299792458**3
+	r=6.67430e-11*Mcomp/299792458**3
 	stig=s/(1+np.sqrt(1-s**2))
 	return (4*r*(stig**3)*(2/3-2*(stig**2)/5),r*(stig**3),stig)
 
@@ -193,7 +193,7 @@ if mcomp_from_massfunction==True:
 		mcomp_custom=newton(mass_equation,mpulsar,fprime=mass_equation_derivative,args=(p_orb,a_custom,mpulsar))
 		print("Companion mass at inclination {}º: {}".format(args.inclination,mcomp_custom))
 		print(" ")
-		mass_function_custom=4*np.pi**2*(299792458*a_custom)**3/((24*3600*p_orb)**2*6.67408e-11)/1.9891e30
+		mass_function_custom=4*np.pi**2*(299792458*a_custom)**3/((24*3600*p_orb)**2*6.67430e-11)/1.9891e30
 
 	if args.verbose==True:
 		print("Computing minimum companion mass.")
@@ -201,7 +201,7 @@ if mcomp_from_massfunction==True:
 	if args.inclination==True:
 		print("Minimum companion mass at inclination 90º: {}".format(mcomp_min))
 		print(" ")
-	mass_function_min=4*np.pi**2*(299792458*x)**3/((24*3600*p_orb)**2*6.67408e-11)/1.9891e30
+	mass_function_min=4*np.pi**2*(299792458*x)**3/((24*3600*p_orb)**2*6.67430e-11)/1.9891e30
 
 	if args.verbose==True:
 		print("Computing median companion mass at inclination angle of 60º.")
@@ -210,7 +210,7 @@ if mcomp_from_massfunction==True:
 	if args.inclination==True:
 		print("Median companion mass at inclination 60º: {}".format(mcomp_median))
 		print(" ")
-	mass_function_median=4*np.pi**2*(299792458*a_median)**3/((24*3600*p_orb)**2*6.67408e-11)/1.9891e30
+	mass_function_median=4*np.pi**2*(299792458*a_median)**3/((24*3600*p_orb)**2*6.67430e-11)/1.9891e30
 
 	if args.verbose==True:
 		print("Computing companion mass at inclination angle of 45º.")
@@ -219,7 +219,7 @@ if mcomp_from_massfunction==True:
 	if args.inclination==True:
 		print("Companion mass at inclination 45º: {}".format(mcomp_max))
 		print(" ")
-	mass_function_max=4*np.pi**2*(299792458*a_max)**3/((24*3600*p_orb)**2*6.67408e-11)/1.9891e30
+	mass_function_max=4*np.pi**2*(299792458*a_max)**3/((24*3600*p_orb)**2*6.67430e-11)/1.9891e30
 
 	if args.verbose==True:
 		print("Plotting companion mass results.")
@@ -258,7 +258,7 @@ if mcomp_from_massfunction==True:
 	mtot=mpulsar+mcomp
 	if args.verbose==True:
 		print("Computing periastron advance out of {} + {} = {} solar masses.".format(mpulsar,mcomp,mtot))
-	omegadot=periastron_advance(p_orb,ecc,mtot)*(180/np.pi)*(24*3600*365)
+	omegadot=periastron_advance(p_orb,ecc,mtot)*(180/np.pi)*(24*3600*365.25)
 	print("Expected rate of periastron advance: {} º/yr".format(omegadot))
 	print(" ")
 
@@ -273,7 +273,7 @@ if mcomp_from_massfunction==True:
 	if args.verbose==True:
 		print("Computing axis decay for {} + {} = {} solar masses.".format(mpulsar,mcomp,mtot))
 #	xdot=axis_decay(p_orb,ecc,mxdot)/299792458
-	xdot=x*pdot/p_orb
+	xdot=(2/3)*x*pdot/p_orb
 	print("Expected rate of axis decay: {} ls/s".format(xdot))
 	print(" ")
 
@@ -317,8 +317,8 @@ elif mcomp_from_massfunction==False:
 	if args.verbose==True:
 		print("Computing periastron advance.")
 	omegadot=periastron_advance(p_orb,ecc,mtot)*(180/np.pi)*(24*3600*365)
-	omegadot_max=periastron_advance(p_orb,ecc,mtot_max)*(180/np.pi)*(24*3600*365)
-	omegadot_min=periastron_advance(p_orb,ecc,mtot_min)*(180/np.pi)*(24*3600*365)
+	omegadot_max=periastron_advance(p_orb,ecc,mtot_max)*(180/np.pi)*(24*3600*365.25)
+	omegadot_min=periastron_advance(p_orb,ecc,mtot_min)*(180/np.pi)*(24*3600*365.25)
 	print("Estimated rate of periastron advance: {}+{}-{} º/yr".format(omegadot,omegadot_max-omegadot,omegadot-omegadot_min))
 	print(" ")
 
@@ -341,9 +341,9 @@ elif mcomp_from_massfunction==False:
 #	xdot=axis_decay(p_orb,ecc,mxdot)/299792458
 #	xdot_max=axis_decay(p_orb,ecc,mxdot_max)/299792458
 #	xdot_min=axis_decay(p_orb,ecc,mxdot_min)/299792458
-	xdot=x*pdot/p_orb
-	xdot_max=x*pdot_max/p_orb
-	xdot_min= x*pdot_min/p_orb
+	xdot=(2/3)*x*pdot/p_orb
+	xdot_max=(2/3)*x*pdot_max/p_orb
+	xdot_min=(2/3)*x*pdot_min/p_orb
 	print("Estimated rate of axis decay: {}+{}-{} ls/s".format(xdot,xdot_max-xdot,xdot-xdot_min))
 	print(" ")
 
@@ -360,9 +360,9 @@ elif mcomp_from_massfunction==False:
 
 	if args.verbose==True:
 		print("Computing the inclination angle.")
-	s=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)*((mtot**2)/(1.9891e30*mcomp**3)))**(1/3)
-	s_min_pre=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)*((mtot_max**2)/(1.9891e30*mcomp_max**3)))**(1/3)
-	s_max_pre=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)*((mtot_min**2)/(1.9891e30*mcomp_min**3)))**(1/3)
+	s=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67430e-11)*((mtot**2)/(1.9891e30*mcomp**3)))**(1/3)
+	s_min_pre=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67430e-11)*((mtot_max**2)/(1.9891e30*mcomp_max**3)))**(1/3)
+	s_max_pre=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67430e-11)*((mtot_min**2)/(1.9891e30*mcomp_min**3)))**(1/3)
 	s_min=min(s_max_pre,s_min_pre)
 	s_max=max(s_max_pre,s_min_pre)
 	s_max=min(s_max,1)

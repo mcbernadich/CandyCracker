@@ -7,9 +7,9 @@ import sys
 def periastron_advance_constant(p_orb,ecc,omdot,domdot):
 
 	p_orb=p_orb*24*3600
-	cnt=3*(6.67408e-11/299792458**3)**(2/3)*(p_orb/(2*np.pi))**(-5/3)/(1-ecc**2)
-	omdot=omdot*(np.pi/180)*(1/(3600*24*365))
-	domdot=domdot*(np.pi/180)*(1/(3600*24*365))
+	cnt=3*(6.67430e-11/299792458**3)**(2/3)*(p_orb/(2*np.pi))**(-5/3)/(1-ecc**2)
+	omdot=omdot*(np.pi/180)*(1/(31557600))
+	domdot=domdot*(np.pi/180)*(1/(31557600))
 
 	mtot=((omdot/cnt)**(3/2))
 	dmtot=(domdot*3/2)*((omdot**(1/2))/(cnt**(3/2)))
@@ -22,7 +22,7 @@ def periastron_advance_constant(p_orb,ecc,omdot,domdot):
 def einstein_delay_constant(p_orb,ecc,gamma,dgamma):
 
 	p_orb=p_orb*24*3600
-	cnt=ecc*(6.67408e-11/299792458**3)**(2/3)*(p_orb/(2*np.pi))**(1/3)
+	cnt=ecc*(6.67430e-11/299792458**3)**(2/3)*(p_orb/(2*np.pi))**(1/3)
 
 	Mgamma=gamma/cnt  #In kg
 	dMgamma=dgamma/cnt
@@ -32,7 +32,7 @@ def einstein_delay_constant(p_orb,ecc,gamma,dgamma):
 def orbital_decay_constant(p_orb,ecc,pbdot,dpbdot):
 
 	p_orb=p_orb*24*3600
-	cnt=(192*np.pi/5)*(6.67408e-11/299792458**3)**(5/3)*(p_orb/(2*np.pi))**(-5/3)*(1+(73/23)*ecc**2+(37/96)*ecc**4)/(1-ecc**2)**(7/2)
+	cnt=(192*np.pi/5)*(6.67430e-11/299792458**3)**(5/3)*(p_orb/(2*np.pi))**(-5/3)*(1+(73/23)*ecc**2+(37/96)*ecc**4)/(1-ecc**2)**(7/2)
 
 	Mchirp=pbdot/cnt  #In kg
 	dMchirp=dpbdot/cnt
@@ -44,8 +44,8 @@ def constraint_from_h3_stig(p_orb,x,stig,dstig,h3,dh3):
 	s=2*stig/(1+stig**2)
 	ds=2*dstig*(1/(1+stig**2)-2*(stig**2)/((1+stig**2)**2))
 
-	mcomp=(299792458**3)*(h3/(stig**3))/6.67408e-11
-	dmcomp=np.sqrt(np.square((299792458**3)*(dh3/(stig**3))/6.67408e-11)+np.square(dstig*(299792458**3)*(h3/(stig**4))/6.67408e-11))
+	mcomp=(299792458**3)*(h3/(stig**3))/6.67430e-11
+	dmcomp=np.sqrt(np.square((299792458**3)*(dh3/(stig**3))/6.67430e-11)+np.square(dstig*(299792458**3)*(h3/(stig**4))/6.67430e-11))
 
 	# In solar masses.
 	return mcomp/1.9891e30,dmcomp/1.9891e30,s,ds
@@ -188,7 +188,7 @@ if args.omdot:
 
 		for s in np.arange(1,0.51,-args.demodulate):
 
-			mcomp=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)*(mtot**2)/1.9891e30)**(1/3)/s
+			mcomp=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67430e-11)*(mtot**2)/1.9891e30)**(1/3)/s
 			mpulsar=mtot-mcomp
 
 			print("{}, {}, {}, {}".format(180*np.arcsin(s)/np.pi,s,mcomp,mpulsar))
@@ -201,8 +201,8 @@ if args.omdot:
 	elif args.inclination:
 
 		s=np.sin(args.inclination*np.pi/180)
-		mcomp=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)*(mtot**2)/1.9891e30)**(1/3)/s
-		dmcomp=(2*dmtot*mtot**(-1/3)/3)*(299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)/1.9891e30)**(1/3))/s
+		mcomp=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67430e-11)*(mtot**2)/1.9891e30)**(1/3)/s
+		dmcomp=(2*dmtot*mtot**(-1/3)/3)*(299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67430e-11)/1.9891e30)**(1/3))/s
 		mpulsar=mtot-mcomp
 		dmpulsar=np.sqrt(dmtot**2+dmcomp**2)
 
@@ -213,8 +213,8 @@ if args.omdot:
 
 	else:
 
-		mcomp=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)*(mtot**2)/1.9891e30)**(1/3)
-		dmcomp=(2*dmtot*mtot**(-1/3)/3)*(299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)/1.9891e30)**(1/3))
+		mcomp=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67430e-11)*(mtot**2)/1.9891e30)**(1/3)
+		dmcomp=(2*dmtot*mtot**(-1/3)/3)*(299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67430e-11)/1.9891e30)**(1/3))
 		mpulsar=mtot-mcomp
 		dmpulsar=np.sqrt(dmtot**2+dmcomp**2)
 
@@ -223,8 +223,8 @@ if args.omdot:
 		print("Mpulsar= {} +/- {} ({} - {}) solar masses".format(mpulsar,dmpulsar,mpulsar-dmpulsar,mpulsar+dmpulsar))
 		print(" ")
 
-		mcomp=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)*(mtot**2)/1.9891e30)**(1/3)/np.sin(60*np.pi/180)
-		dmcomp=(2*dmtot*mtot**(-1/3)/3)*(299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)/1.9891e30)**(1/3))/np.sin(60*np.pi/180)
+		mcomp=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67430e-11)*(mtot**2)/1.9891e30)**(1/3)/np.sin(60*np.pi/180)
+		dmcomp=(2*dmtot*mtot**(-1/3)/3)*(299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67430e-11)/1.9891e30)**(1/3))/np.sin(60*np.pi/180)
 		mpulsar=mtot-mcomp
 		dmpulsar=np.sqrt(dmtot**2+dmcomp**2)
 
@@ -233,8 +233,8 @@ if args.omdot:
 		print("Mpulsar= {} +/- {} ({} - {}) solar masses".format(mpulsar,dmpulsar,mpulsar-dmpulsar,mpulsar+dmpulsar))
 		print(" ")
 
-		mcomp=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)*(mtot**2)/1.9891e30)**(1/3)/np.sin(45*np.pi/180)
-		dmcomp=(2*dmtot*mtot**(-1/3)/3)*(299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)/1.9891e30)**(1/3))/np.sin(45*np.pi/180)
+		mcomp=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67430e-11)*(mtot**2)/1.9891e30)**(1/3)/np.sin(45*np.pi/180)
+		dmcomp=(2*dmtot*mtot**(-1/3)/3)*(299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67430e-11)/1.9891e30)**(1/3))/np.sin(45*np.pi/180)
 		mpulsar=mtot-mcomp
 		dmpulsar=np.sqrt(dmtot**2+dmcomp**2)
 
@@ -248,7 +248,7 @@ if args.omdot and args.gamma:
 	
 	mcomp=(-mtot+np.sqrt(mtot**2+4*mtot**(4/3)*mgamma))/2
 	mpulsar=mtot-mcomp
-	s=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)*((mtot**2)/(1.9891e30*mcomp**3)))**(1/3)
+	s=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67430e-11)*((mtot**2)/(1.9891e30*mcomp**3)))**(1/3)
 
 	print("Masses from periastron advance and Einstein delay:")
 	print(" ")
@@ -265,8 +265,8 @@ if args.omdot and args.pbdot:
 	
 	m1=(mtot-np.sqrt(mtot**2-4*mtot**(1/3)*mchirp))/2
 	m2=(mtot+np.sqrt(mtot**2-4*mtot**(1/3)*mchirp))/2
-	s1=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)*((mtot**2)/(1.9891e30*m1**3)))**(1/3)
-	s2=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67408e-11)*((mtot**2)/(1.9891e30*m2**3)))**(1/3)
+	s1=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67430e-11)*((mtot**2)/(1.9891e30*m1**3)))**(1/3)
+	s2=299792458*x*((1/(3600*24*p_orb)**2)*(4*np.pi**2/6.67430e-11)*((mtot**2)/(1.9891e30*m2**3)))**(1/3)
 
 	print("Masses from periastron advance and orbital decay:")
 	print(" ")

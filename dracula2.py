@@ -50,13 +50,13 @@ def add_jumps_and_fit(parFile,timFile,skipJumps,nFits):
 	phase_jumps_times=[]
 
 	# Compute the jumps.
+	print("Reading ToAs and computing jumps.")
+	par_write.write("\n")
 	for line in tim_read:
-		if line=="FORMAT 1\n":
-			print("")
-			print("Reading ToAs and computing jumps.")
-			par_write.write("\n")
+		if line=="FORMAT 1\n" or line=="MODE 1\n" or line[1]="C":
+			dummy=1
 		else:
-			line=line.trim().split()
+			line=line.strip().split()
 			obs=line[0]
 			time=float(line[2])
 			if i==1:
@@ -285,7 +285,7 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 		else:
 			print("Tempo2 can't fit a solution for this phase jump. Using dummy CHI2R value of 999999999.")
 			phase.insert(0,-2)
-			chi2r.instert(0,999999999.0)
+			chi2r.insert(0,999999999.0)
 			left_chi2r=999999999.0
 
 		(instant_chi2r,exists)=remove_jump_add_phase(parFile,phase_jump_times,jump_index,2,max_chi2r)
@@ -541,7 +541,6 @@ while i<n_jumps:
 				multiprocesses=multi.Pool(processes=args.n_gulp)
 				dummy_array=multiprocesses.map(partial(find_chi2r_interval,phase_jump_times=phase_jumps_times,jump_index=ordering[i],max_chi2r=args.max_chi2r,max_solutions=args.max_solutions),parFiles[j:j+args.n_gulp])
 				j=j+args.n_gulp
-
 
 				multiprocesses.close()
 				multiprocesses.join()

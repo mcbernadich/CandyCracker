@@ -199,7 +199,6 @@ if fit == False and args.data:
 elif fit == True and model == "p-acc":
 
 	(periods,accelerations)=period_accel(f0,p_orb,x,ecc,omega,2000)
-
 	if args.data:
 		plt.errorbar(1000*history[1],history[2],yerr=history[3],fmt="o")
 	plt.plot(1000*periods,accelerations,"c-")
