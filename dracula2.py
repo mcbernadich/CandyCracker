@@ -53,7 +53,7 @@ def add_jumps_and_fit(parFile,timFile,skipJumps,nFits):
 	print("Reading ToAs and computing jumps.")
 	par_write.write("\n")
 	for line in tim_read:
-		if line=="FORMAT 1\n" or line=="MODE 1\n" or line[1]="C":
+		if line=="FORMAT 1\n" or line=="MODE 1\n" or line[1]=="C":
 			dummy=1
 		else:
 			line=line.strip().split()
