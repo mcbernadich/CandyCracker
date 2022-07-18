@@ -59,7 +59,7 @@ def add_jumps_and_fit(parFile,timFile,skipJumps,nFits):
 			line=line.strip().split()
 			obs=line[0]
 			time=float(line[2])
-			if i==1:
+			if i==0:
 				time_start=time
 			if obs!=old_obs and i>1:
 				time_end=time_old
@@ -70,9 +70,9 @@ def add_jumps_and_fit(parFile,timFile,skipJumps,nFits):
 				jumps=jumps+1
 			old_obs=obs
 			time_old=float(time)
-		i=i+1
+			i=i+1
 
-	nToAs=i-1
+	nToAs=i
 
 	par_read.close()
 	tim_read.close()
