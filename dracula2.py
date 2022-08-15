@@ -128,11 +128,11 @@ def remove_jump_add_phase(parFile_jumps,phase_jump_times,jump_index,phase,max_ch
 	print("Removing JUMP"+str(jump_index)+" (MJD= "+str(phase_jumps_times[jump_index])+")")
 	jumps=[]
 	for line in par_read:
-		chunks = line.strip().split()
 		if line == "" or line == " " or line == "	": #Fixing minor bugs due to empty lines.
 			line="1 1"
 		if line == "\n": #Fixing minor bugs due to empty lines.
 			line="1 1\n"
+		chunks = line.strip().split()
 		if chunks[0]+" "+chunks[1]=="JUMP MJD":
 			jumps.append([float(chunks[2]),float(chunks[3]),float(chunks[4])])
 		else:
