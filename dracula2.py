@@ -258,14 +258,14 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 		print("The slope is clear from the three chi2r values.")
 
 	# Make sure that we don't have a disaster here (erase ambiguity in case of similar numbers).
-	if chi2r[0]==chi2r[1] and chi2r[1]<chi2r[2]:
+	if (chi2r[0]==chi2r[1] and chi2r[1]<chi2r[2]) or (chi2r[0]<chi2r[1] and chi2r[1]==chi2r[2]):
 		direction=0
 		starting_phase=2
 		print("")
 		print("Some ambiguity in the chi2r values, but a prefered direction is found.")
 		max_solutions=max_solutions+2
 
-	if chi2r[1]==chi2r[2] and chi2r[1]<chi2r[0]:
+	if (chi2r[1]==chi2r[2] and chi2r[1]<chi2r[0]) or (chi2r[1]>chi2r[2] and chi2r[1]==chi2r[0]):
 		direction=2
 		starting_phase=2
 		print("")
