@@ -489,6 +489,7 @@ parser.add_argument("--max_solutions",type=int,help="Largest amount of solutions
 parser.add_argument("--n_gulp",type=int,help="Number of jumps to remove at the same time (multithreading). The on-screen outputs become funky. Default: a single thread (serial).")
 parser.add_argument("--pre_fits",type=int,help="Number of fits done to the initial file once jumps are added.",default=1)
 parser.add_argument("--par_with_jumps",type=bool,help="If set, then jumps are assumed to be added manually and they are are not added by dracula2. Make sure that they are in the correct format!",default=False)
+parser.add_argument("--skip_jumps",type=int,help="If set, then skip the removal of this many jumps. Useful for continuing a broken run.",default=0)
 args = parser.parse_args()
 
 print(args.par_with_jumps)
@@ -508,7 +509,8 @@ print("Jumps will be removed in this order:",ordering)
 print(phase_jumps_times[ordering])
 
 #Loop over jumps.
-i=0
+i=0+args.skip_jumps
+first=True
 phases=[]
 chi2r=[]
 # At each jump removal, your directory will become VERY cluttered.
@@ -519,9 +521,10 @@ chi2r=[]
 # If there are more than 1 possible solutions, they will be left in your folder as well.
 while i<n_jumps:
 	# Loop over phases
-	if i==0:
+	if first==True:
 		parFile=parFile.split(".")[0]+"_jumps.par"
 		dummy=find_chi2r_interval(parFile,phase_jumps_times,ordering[i],args.max_chi2r,args.max_solutions)
+		first=False
 		i=i+1
 	else:
 
