@@ -489,6 +489,7 @@ parser.add_argument("--max_solutions",type=int,help="Largest amount of solutions
 parser.add_argument("--n_gulp",type=int,help="Number of jumps to remove at the same time (multithreading). The on-screen outputs become funky. Default: a single thread (serial).")
 parser.add_argument("--pre_fits",type=int,help="Number of fits done to the initial file once jumps are added.",default=1)
 parser.add_argument("--par_with_jumps",type=bool,help="If set, then jumps are assumed to be added manually and they are are not added by dracula2. Make sure that they are in the correct format!",default=False)
+parser.add_argument("--up_to_jump",type=int,help="If set, then skip the run will end after removing this jump (conted from 0). Useful for splicing runs.")
 parser.add_argument("--skip_jumps",type=int,help="If set, then skip the removal of this many jumps. Useful for continuing a broken run.",default=0)
 args = parser.parse_args()
 
@@ -500,6 +501,11 @@ root=parFile.split(".")[0]
 
 # Create a PAR file with jumps and fit for them.
 (n_jumps,chi2r,time_intervals,phase_jumps_times)=add_jumps_and_fit(parFile,timFile,args.par_with_jumps,args.pre_fits)
+
+max_jump=n_jumps-1
+
+if args.up_to_jump:
+	max_jump=args.up_to_jump
 
 # Order the resulting time intervals to know where to start removing.
 ordering=np.argsort(time_intervals)
@@ -519,7 +525,7 @@ chi2r=[]
 # - The original one with all the JUMP MJD statements.
 # - The final, phase-connected solution with no JUMP MJD statements.
 # If there are more than 1 possible solutions, they will be left in your folder as well.
-while i<n_jumps:
+while i<=max_jump:
 	# Loop over phases
 	if first==True:
 		parFile=parFile.split(".")[0]+"_jumps.par"
@@ -559,4 +565,5 @@ while i<n_jumps:
 		subprocess.run(["mkdir",root+"_JUMP"+str(ordering[i-1])],stdout=subprocess.DEVNULL)
 		for file in parFiles:
 			subprocess.run(["mv",file,root+"_JUMP"+str(ordering[i-1])],stdout=subprocess.DEVNULL)
+
 		i=i+1
