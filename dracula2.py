@@ -481,19 +481,36 @@ def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_soluti
 
 	return 1
 
+def order_and_trim_files(max_files,parFiles):
+
+	chi2r_list=[]
+
+	for file in parFiles:
+
+		chi2r_append(read_chi2r_from_par(file))
+
+	parFiles=np.array(parFiles)
+	chi2r_list=np.array(chi2r_list)
+
+	parFiles=parFiles[np.argsort(chi2r_list)]
+	parFiles=parFiles[0:max_files]
+
+	return parFiles
+
+
+
 parser=argparse.ArgumentParser(description="Take in a tempo2 parameter file and a tim file, and attempt to find a phase connection with JUMP and PHASE statements. It requires an installation of tempo2 and numpy.")
 parser.add_argument("-p","--parameter",help="Tempo2 parameter file WITHOUT 'JUMP MJD' or 'PHASE' statements. There can be other kinds of jumps, but the last observation MUST either NOT be jumped, or have its jump value FIXED. For instance, if you have backend jumps, the backend with the last observation should be the non-jumped one. Only parameters with 1 will be fit.")
 parser.add_argument("-t","--tim",help="Tempo2 tim file. It requires: observation name in the 1st column, and ToA in the third columns.")
 parser.add_argument("--max_chi2r",type=float,help="Largest acceptable chi2r value for a solution. Default: 2.0",default=2.0)
 parser.add_argument("--max_solutions",type=int,help="Largest amount of solutions that are taken from each jump removal attempt. The code will padd this number a bit is ambiguities are found in some jump removals. Default: 5",default=5)
+parser.add_argument("--max_files",type=int,help="Largest global amount of files taken from each jump removal attempt, always with the lowest CHI2R value. The code will padd this number a bit is ambiguities are found in some jump removals. Default: all of them.")
 parser.add_argument("--n_gulp",type=int,help="Number of jumps to remove at the same time (multithreading). The on-screen outputs become funky. Default: a single thread (serial).")
 parser.add_argument("--pre_fits",type=int,help="Number of fits done to the initial file once jumps are added.",default=1)
 parser.add_argument("--par_with_jumps",type=bool,help="If set, then jumps are assumed to be added manually and they are are not added by dracula2. Make sure that they are in the correct format!",default=False)
 parser.add_argument("--up_to_jump",type=int,help="If set, then skip the run will end after removing this jump (conted from 0). Useful for splicing runs.")
-parser.add_argument("--skip_jumps",type=int,help="If set, then skip the removal of this many jumps. Useful for continuing a broken run.",default=0)
+parser.add_argument("--skip_jumps",type=int,help="If set, then skip the removal of this many jumps. Useful for continuing a broken run. MUST BE USED WITH --par_with_jumps",default=0)
 args = parser.parse_args()
-
-print(args.par_with_jumps)
 
 parFile=args.parameter
 timFile=args.tim
@@ -538,7 +555,15 @@ while i<=max_jump:
 		parFiles=glob.glob(parFile)
 		print("")
 		print("Surviving PAR files from removing the previous jump:",parFiles)
-	
+
+		if args.max_files:
+
+			if len(parFiles) > args.max_files:
+
+				print("")
+				print("Selecting only the",args.max_files,"files with the lowest CHI2R value.")
+
+				parFiles=order_and_trim_files(args.max_files,parFiles)	
 
 		if args.n_gulp:
 
