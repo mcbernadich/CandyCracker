@@ -563,17 +563,24 @@ while i<=max_jump:
 				print("")
 				print("Selecting only the",args.max_files,"files with the lowest CHI2R value.")
 
-				parFiles=order_and_trim_files(args.max_files,parFiles)	
+				parFiles_solving=order_and_trim_files(args.max_files,parFiles)
+
+			else:
+
+				parFiles_solving=parFiles
+		else:
+
+			parFiles_solving=parFiles
 
 		if args.n_gulp:
 
-			nFiles=len(parFiles)
+			nFiles=len(parFiles_solving)
 			j=0
 
 			while j < nFiles:
 
 				multiprocesses=multi.Pool(processes=args.n_gulp)
-				dummy_array=multiprocesses.map(partial(find_chi2r_interval,phase_jump_times=phase_jumps_times,jump_index=ordering[i],max_chi2r=args.max_chi2r,max_solutions=args.max_solutions),parFiles[j:j+args.n_gulp])
+				dummy_array=multiprocesses.map(partial(find_chi2r_interval,phase_jump_times=phase_jumps_times,jump_index=ordering[i],max_chi2r=args.max_chi2r,max_solutions=args.max_solutions),parFiles_solving[j:j+args.n_gulp])
 				j=j+args.n_gulp
 
 				multiprocesses.close()
@@ -582,7 +589,7 @@ while i<=max_jump:
 
 		else:
 
-			for file in parFiles:
+			for file in parFiles_solving:
 				dummy=find_chi2r_interval(file,phase_jumps_times,ordering[i],args.max_chi2r,args.max_solutions)
 
 		print("")
