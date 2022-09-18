@@ -487,7 +487,7 @@ def order_and_trim_files(max_files,parFiles):
 
 	for file in parFiles:
 
-		chi2r_append(read_chi2r_from_par(file))
+		chi2r_list.append(read_chi2r_from_par(file))
 
 	parFiles=np.array(parFiles)
 	chi2r_list=np.array(chi2r_list)
