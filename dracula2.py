@@ -78,7 +78,7 @@ def compatible(parFile,ref_pos,tol):
 
 #	distance = solution.separation(reference)
 
-	if ( abs(ra-ref_ra)-3*dra > tol/np.cos(ref_ra*np.pi/64800) ) or ( abs(dec-ref_dec)-3*ddec > tol ):
+	if ( abs(ra-ref_ra)-3*dra > tol/np.cos(ref_ra*np.pi/648000) ) or ( abs(dec-ref_dec)-3*ddec > tol ):
 
 		compatible=False
 
