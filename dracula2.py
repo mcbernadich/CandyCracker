@@ -30,11 +30,22 @@ def read_chi2r_from_logs(tempo2logs):
 			break
 	return chi2r
 
+def to_arcsec(position,mode):
+
+	position=position.split(":")
+
+	if mode=="hours":
+
+		position=(position[0]*3600+position[1]*60+position[2])*180/12
+
+	if mode=="degrees"
+
+		position=position[0]*3600+position[1]*60+position[2]
+
+	return position
+
 # libstempo is unable to read CHI2R from the PAR, so I did it myself.
 def compatible(parFile,ref_pos,tol):
-
-	import astropy.units as u
-	from astropy.coordinates import SkyCoord
 
 	compatible=True
 
