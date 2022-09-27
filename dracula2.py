@@ -72,7 +72,7 @@ def compatible(parFile,ref_pos,tol):
 #	reference = SkyCoord(ref_pos.split(",")[0], ref_pos.split(",")[1], unit=(u.hourangle, u.deg), frame='icrs')
 
 	ref_ra=to_arcsec(ref_pos.split(",")[0],"hours")
-	ref_dec=to_arcsec(ref_pos.split(",")[0],"degrees")
+	ref_dec=to_arcsec(ref_pos.split(",")[1],"degrees")
 
 	print(ra,ref_ra,dra,dec,ref_dec,ddec)
 
@@ -639,8 +639,8 @@ while i<=max_jump:
 
 				if compatible(file,args.position_prior,args.position_tolerance)==False:
 
-					#subprocess.run(["rm",file],stdout=subprocess.DEVNULL)
-					print("This one would be removed.")
+					print("Removing",file,"because of uncompatible position")
+					subprocess.run(["rm",file],stdout=subprocess.DEVNULL)
 
 			parFile=parFile.split(".")[0]+"_*.par"
 
