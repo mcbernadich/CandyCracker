@@ -36,11 +36,11 @@ def to_arcsec(position,mode):
 
 	if mode=="hours":
 
-		position=(position[0]*3600+position[1]*60+position[2])*180/12
+		position=(float(position[0])*3600+float(position[1])*60+float(position[2]))*180/12
 
 	if mode=="degrees"
 
-		position=position[0]*3600+position[1]*60+position[2]
+		position=float(position[0])*3600+float(position[1])*60+float(position[2])
 
 	return position
 
@@ -57,26 +57,28 @@ def compatible(parFile,ref_pos,tol):
 			line="1 1\n"
 		chunks = line.strip().split()
 		if chunks[0]=="RAJ":
-			ra=chunks[1]
-			dra=chunks[3]
+			ra=to_arcsec(chunks[1],"hours")
+			dra=float(chunks[3])
 		if chunks[0]=="DECJ":
-			dec=chunks[1]
-			ddec=chunks[3]
+			dec=to_arcsec(chunks[1],"degrees")
+			ddec=float(chunks[3])
 	par_read.close()
 
 	# Measure distance between sources.
 
 #	print(ra,dec)
 
-	solution = SkyCoord(ra, dec, unit=(u.hourangle, u.deg), frame='icrs')
-	reference = SkyCoord(ref_pos.split(",")[0], ref_pos.split(",")[1], unit=(u.hourangle, u.deg), frame='icrs')
+#	solution = SkyCoord(ra, dec, unit=(u.hourangle, u.deg), frame='icrs')
+#	reference = SkyCoord(ref_pos.split(",")[0], ref_pos.split(",")[1], unit=(u.hourangle, u.deg), frame='icrs')
 
-	print(solution.arcsec)
-	print(reference.arcsec)
+	ref_ra=to_arcsec(ref_pos.split(",")[0],"hours")
+	ref_dec=to_arcsec(ref_pos.split(",")[0],"degrees")
+
+	print(ra,ref_ra,dra,dec,ref_dec,ddec)
 
 #	distance = solution.separation(reference)
 
-	if ( abs(solution.arcsec[0]-reference.arcsec[0])-dra > tolerance/np.cos(reference.rad[0]) ) or ( abs(solution.arcsec[1]-reference.arcsec[1])-ddec > tolerance ):
+	if ( abs(ra-ref_ra)-dra > tolerance/np.cos(ref_ra) ) or ( abs(dec-ref_dec)-ddec > tolerance ):
 
 		compatible=False
 
