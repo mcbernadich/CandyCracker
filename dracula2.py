@@ -639,10 +639,10 @@ while i<=max_jump:
 
 				if compatible(file,args.position_prior,args.position_tolerance)==False:
 
-					print("Removing",file,"because of uncompatible position")
+					print("Removing",file,"because of uncompatible position.")
 					subprocess.run(["rm",file],stdout=subprocess.DEVNULL)
 
-			parFile=parFile.split(".")[0]+"_*.par"
+			parFiles=glob.glob(parFile)
 
 		if args.max_files:
 
