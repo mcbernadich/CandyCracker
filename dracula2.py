@@ -38,7 +38,7 @@ def to_arcsec(position,mode):
 
 		position=(float(position[0])*3600+float(position[1])*60+float(position[2]))*180/12
 
-	if mode=="degrees"
+	if mode=="degrees":
 
 		position=float(position[0])*3600+float(position[1])*60+float(position[2])
 
