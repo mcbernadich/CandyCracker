@@ -571,8 +571,8 @@ parser.add_argument("--pre_fits",type=int,help="Number of fits done to the initi
 parser.add_argument("--par_with_jumps",type=bool,help="If set, then jumps are assumed to be added manually and they are are not added by dracula2. Make sure that they are in the correct format!",default=False)
 parser.add_argument("--up_to_jump",type=int,help="If set, then skip the run will end after removing this jump (counted from 0). Useful for splicing runs.")
 parser.add_argument("--skip_jumps",type=int,help="If set, then skip the removal of this many jumps. Useful for continuing a broken run. MUST BE USED WITH --par_with_jumps",default=0)
-parser.add_argument("--position_prior",help="Prior position of the pulsar. Solutions with a different position will be deleted. It must be used --position_tolerance")
-parser.add_argument("--position_tolerance",type=float,help="Positional tolerance of found positions. It must be used with --position_prior.")
+parser.add_argument("--position_prior",help="Prior position of the pulsar in J2000 equatiorial coordinates, separated by comas. Solutions with a different position will be deleted. It must be used --position_tolerance")
+parser.add_argument("--position_tolerance",type=float,help="Positional tolerance of found positions in arcseconds. It must be used with --position_prior.")
 
 args = parser.parse_args()
 
