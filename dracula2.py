@@ -30,6 +30,44 @@ def read_chi2r_from_logs(tempo2logs):
 			break
 	return chi2r
 
+# libstempo is unable to read CHI2R from the PAR, so I did it myself.
+def compatible(parFile,ref_pos,tol):
+
+	import astropy.units as u
+	from astropy.coordinates import SkyCoord
+
+	compatible=True
+
+	par_read=open(parFile,"r")
+	for line in par_read:
+		if line == "" or line == " " or line == "	": #Fixing minor bugs due to empty lines.
+			line="1 1"
+		if line == "\n": #Fixing minor bugs due to empty lines.
+			line="1 1\n"
+		chunks = line.strip().split()
+		if chunks[0]=="RAJ":
+			ra=chunks[1]
+			dra=chunks[3]
+		if chunks[0]=="DECJ":
+			dec=chunks[1]
+			ddec=chunks[3]
+	par_read.close()
+
+	# Measure distance between sources.
+
+#	print(ra,dec)
+
+	solution = SkyCoord(ra, dec, unit=(u.hourangle, u.deg), frame='icrs')
+	reference = SkyCoord(ref_pos.split(",")[0], ref_pos.split(",")[1], unit=(u.hourangle, u.deg), frame='icrs')
+
+#	distance = solution.separation(reference)
+
+	if ( abs(solution.arcsec[0]-reference.arcsec[0])-dra > tolerance/np.cos(reference.rad[0]) ) or ( abs(solution.arcsec[1]-reference.arcsec[1])-ddec > tolerance ):
+
+		compatible=False
+
+	return compatible
+
 # Read a PAR file, add JUMPS MJD statements for each osbervation except the last one,
 # and fit all of the parameters (with 1 in the PAR) and the JUMP MJD statements.
 # This marks the initialization of the script as well.
@@ -497,7 +535,27 @@ def order_and_trim_files(max_files,parFiles):
 
 	return parFiles
 
+def remove_by_position(parFiles,ref_pos,tolerance):
 
+	distance_list=[]
+	uncertainty_list=[]
+
+	for file in parFiles:
+
+		(distance,uncertainty)=compute_distance(file,ref_pos)
+		distance_list.append(distance)
+		uncertainty_list.append(uncertainty)
+
+		if distance-uncertainty>tolerance:
+			subprocess.run(["rm",file],stdout=subprocess.DEVNULL)
+
+	parFiles=np.array(parFiles)
+	distance_list=np.array(distance_list)
+	uncertainty_list=np.array(uncertainty_list)
+
+	parFiles=parFiles[ distance-uncertainty<=tolerance ]
+
+	return parFiles
 
 parser=argparse.ArgumentParser(description="Take in a tempo2 parameter file and a tim file, and attempt to find a phase connection with JUMP and PHASE statements. It requires an installation of tempo2 and numpy.")
 parser.add_argument("-p","--parameter",help="Tempo2 parameter file WITHOUT 'JUMP MJD' or 'PHASE' statements. There can be other kinds of jumps, but the last observation MUST either NOT be jumped, or have its jump value FIXED. For instance, if you have backend jumps, the backend with the last observation should be the non-jumped one. Only parameters with 1 will be fit.")
@@ -508,7 +566,7 @@ parser.add_argument("--max_files",type=int,help="Largest global amount of files 
 parser.add_argument("--n_gulp",type=int,help="Number of jumps to remove at the same time (multithreading). The on-screen outputs become funky. Default: a single thread (serial).")
 parser.add_argument("--pre_fits",type=int,help="Number of fits done to the initial file once jumps are added.",default=1)
 parser.add_argument("--par_with_jumps",type=bool,help="If set, then jumps are assumed to be added manually and they are are not added by dracula2. Make sure that they are in the correct format!",default=False)
-parser.add_argument("--up_to_jump",type=int,help="If set, then skip the run will end after removing this jump (conted from 0). Useful for splicing runs.")
+parser.add_argument("--up_to_jump",type=int,help="If set, then skip the run will end after removing this jump (counted from 0). Useful for splicing runs.")
 parser.add_argument("--skip_jumps",type=int,help="If set, then skip the removal of this many jumps. Useful for continuing a broken run. MUST BE USED WITH --par_with_jumps",default=0)
 args = parser.parse_args()
 
@@ -555,6 +613,17 @@ while i<=max_jump:
 		parFiles=glob.glob(parFile)
 		print("")
 		print("Surviving PAR files from removing the previous jump:",parFiles)
+
+		if (args.position_prior and args.postion_tolerance):
+
+			for file in parFiles:
+
+				if compatible(file,args.position_prior,args.postion_tolerance)==False:
+
+					#subprocess.run(["rm",file],stdout=subprocess.DEVNULL)
+					print("This one would be removed.")
+
+			parFile=parFile.split(".")[0]+"_*.par"
 
 		if args.max_files:
 
