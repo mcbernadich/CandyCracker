@@ -576,7 +576,7 @@ def remove_by_position(parFiles,ref_pos,tolerance):
 parser=argparse.ArgumentParser(description="Take in a tempo2 parameter file and a tim file, and attempt to find a phase connection with JUMP and PHASE statements. It requires an installation of tempo2 and numpy.")
 parser.add_argument("-p","--parameter",help="Tempo2 parameter file WITHOUT 'JUMP MJD' or 'PHASE' statements. There can be other kinds of jumps, but the last observation MUST either NOT be jumped, or have its jump value FIXED. For instance, if you have backend jumps, the backend with the last observation should be the non-jumped one. Only parameters with 1 will be fit.")
 parser.add_argument("-t","--tim",help="Tempo2 tim file. It requires: observation name in the 1st column, and ToA in the third columns.")
-parser.add_argument("-c","--continue",type=bool,help="This option, given a --skip_jumps, makes dracula2 run as if it was continuing from the previous step removal. Useful for spliced runs.",default=False)
+parser.add_argument("-c","--continuation",type=bool,help="This option, given a --skip_jumps, makes dracula2 run as if it was continuing from the previous step removal. Useful for spliced runs.",default=False)
 parser.add_argument("-s","--single",type=int,help="Single jump mode. Useful for semi-manual operations. Specify the desired jump i chronological order, starting by 0.")
 parser.add_argument("--max_chi2r",type=float,help="Largest acceptable chi2r value for a solution. Default: 2.0",default=2.0)
 parser.add_argument("--max_solutions",type=int,help="Largest amount of solutions that are taken from each jump removal attempt. The code will padd this number a bit is ambiguities are found in some jump removals. Default: 5",default=5)
@@ -603,7 +603,7 @@ if args.single:
 	n_jumps=1
 	first=False
 
-if args.continue:
+if args.continuation:
 	first=False
 
 # Order the resulting time intervals to know where to start removing.
