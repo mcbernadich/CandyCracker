@@ -237,7 +237,7 @@ def remove_jump_add_phase(parFile_jumps,phase_jump_times,jump_index,phase,max_ch
 	par_write.close()
 
 	# Fit! Also, store the output to read the chi2r, whih has a higher resolution thatn the one in the parameter file.
-	subrun=subprocess.run(["tempo2","-f",parFile_phases,timFile,"-outpar",parFile_phases.split(".")[0]+"_solution_candidate.par"],stdout=subprocess.PIPE)
+	subrun=subprocess.run(["tempo2","-f",parFile_phases,timFile,"-outpar",parFile_phases.split(".")[0]+"_solution_candidate.par","--fit "],stdout=subprocess.PIPE)
 
 	# Check if the fit has not crashed (solution_candidate exists.)
 	solution_exists=exists(parFile_phases.split(".")[0]+"_solution_candidate.par")
@@ -576,6 +576,8 @@ def remove_by_position(parFiles,ref_pos,tolerance):
 parser=argparse.ArgumentParser(description="Take in a tempo2 parameter file and a tim file, and attempt to find a phase connection with JUMP and PHASE statements. It requires an installation of tempo2 and numpy.")
 parser.add_argument("-p","--parameter",help="Tempo2 parameter file WITHOUT 'JUMP MJD' or 'PHASE' statements. There can be other kinds of jumps, but the last observation MUST either NOT be jumped, or have its jump value FIXED. For instance, if you have backend jumps, the backend with the last observation should be the non-jumped one. Only parameters with 1 will be fit.")
 parser.add_argument("-t","--tim",help="Tempo2 tim file. It requires: observation name in the 1st column, and ToA in the third columns.")
+parser.add_argument("-c","--continue",type=bool,help="This option, given a --skip_jumps, makes dracula2 run as if it was continuing from the previous step removal. Useful for spliced runs.",default=False)
+parser.add_argument("-s","--single",type=int,help="Single jump mode. Useful for semi-manual operations. Specify the desired jump i chronological order, starting by 0.")
 parser.add_argument("--max_chi2r",type=float,help="Largest acceptable chi2r value for a solution. Default: 2.0",default=2.0)
 parser.add_argument("--max_solutions",type=int,help="Largest amount of solutions that are taken from each jump removal attempt. The code will padd this number a bit is ambiguities are found in some jump removals. Default: 5",default=5)
 parser.add_argument("--max_files",type=int,help="Largest global amount of files taken from each jump removal attempt, always with the lowest CHI2R value. The code will padd this number a bit is ambiguities are found in some jump removals. Default: all of them.")
@@ -596,10 +598,13 @@ root=parFile.split(".")[0]
 # Create a PAR file with jumps and fit for them.
 (n_jumps,chi2r,time_intervals,phase_jumps_times)=add_jumps_and_fit(parFile,timFile,args.par_with_jumps,args.pre_fits)
 
-max_jump=n_jumps-1
+if args.single:
+	ordering=args.single
+	n_jumps=1
+	first=False
 
-if args.up_to_jump:
-	max_jump=args.up_to_jump
+if args.continue:
+	first=False
 
 # Order the resulting time intervals to know where to start removing.
 ordering=np.argsort(time_intervals)
@@ -608,11 +613,20 @@ print("")
 print("Jumps will be removed in this order:",ordering)
 print(phase_jumps_times[ordering])
 
+if args.skip_jumps:
+	print("This many jumps will be skipped at the beggining:",ordering[args.skip_jumps])
+
+max_jump=n_jumps-1
+
+if args.up_to_jump:
+	max_jump=args.up_to_jump
+	print("The last fitted jump will be:",ordering[max_jump])
+
 #Loop over jumps.
 i=0+args.skip_jumps
-first=True
 phases=[]
 chi2r=[]
+first=True
 # At each jump removal, your directory will become VERY cluttered.
 # However, all files end up nicelly collected in new folders at the end of the script.
 # Ideally, only 2 extra files should be left at in your direcotory:
