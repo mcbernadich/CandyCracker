@@ -598,6 +598,9 @@ root=parFile.split(".")[0]
 # Create a PAR file with jumps and fit for them.
 (n_jumps,chi2r,time_intervals,phase_jumps_times)=add_jumps_and_fit(parFile,timFile,args.par_with_jumps,args.pre_fits)
 
+# Order the resulting time intervals to know where to start removing.
+ordering=np.argsort(time_intervals)
+
 if args.single:
 	ordering=args.single
 	n_jumps=1
@@ -605,9 +608,6 @@ if args.single:
 
 if args.continuation:
 	first=False
-
-# Order the resulting time intervals to know where to start removing.
-ordering=np.argsort(time_intervals)
 
 print("")
 print("Jumps will be removed in this order:",ordering)
