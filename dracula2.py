@@ -601,6 +601,8 @@ root=parFile.split(".")[0]
 # Order the resulting time intervals to know where to start removing.
 ordering=np.argsort(time_intervals)
 
+first=True
+
 if args.single:
 	ordering=[args.single]
 	n_jumps=1
@@ -627,7 +629,6 @@ if args.up_to_jump:
 i=0+args.skip_jumps
 phases=[]
 chi2r=[]
-first=True
 # At each jump removal, your directory will become VERY cluttered.
 # However, all files end up nicelly collected in new folders at the end of the script.
 # Ideally, only 2 extra files should be left at in your direcotory:
