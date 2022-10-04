@@ -609,11 +609,10 @@ if args.single:
 	else:
 		ordering=[args.single]
 	n_jumps=1
-	first=False
-	parFile=parFile.split(".")[0]+"_jumps.par" #To make sure that the correct one is taken.
 
 if args.continuation:
 	first=False
+	parFile=parFile.split(".")[0]+"_jumps.par" #To make sure that the correct one is taken.
 
 print("")
 print("Jumps will be removed in this order:",ordering)
