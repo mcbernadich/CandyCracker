@@ -602,7 +602,7 @@ root=parFile.split(".")[0]
 ordering=np.argsort(time_intervals)
 
 if args.single:
-	ordering=args.single
+	ordering=[args.single]
 	n_jumps=1
 	first=False
 
