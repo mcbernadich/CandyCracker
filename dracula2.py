@@ -604,7 +604,10 @@ ordering=np.argsort(time_intervals)
 first=True
 
 if args.single:
-	ordering=[args.single]
+	if args.single==-1:
+		ordering=[0]
+	else:
+		ordering=[args.single]
 	n_jumps=1
 	first=False
 	parFile=parFile.split(".")[0]+"_jumps.par" #To make sure that the correct one is taken.
