@@ -58,10 +58,12 @@ def compatible(parFile,ref_pos,tol):
 		chunks = line.strip().split()
 		if chunks[0]=="RAJ":
 			ra=to_arcsec(chunks[1],"hours")
-			dra=float(chunks[3])
+			if len(chunks[0])>=3:
+				dra=float(chunks[3])
 		if chunks[0]=="DECJ":
 			dec=to_arcsec(chunks[1],"degrees")
-			ddec=float(chunks[3])
+			if len(chunks[0])>=3:
+				ddec=float(chunks[3])
 	par_read.close()
 
 	# Measure distance between sources.
@@ -643,7 +645,7 @@ phases=[]
 chi2r=[]
 # At each jump removal, your directory will become VERY cluttered.
 # However, all files end up nicelly collected in new folders at the end of the script.
-# Ideally, only 2 extra files should be left at in your direcotory:
+# Ideally, only 2 extra files should be left at in your directory:
 # - The original one with all the JUMP MJD statements.
 # - The final, phase-connected solution with no JUMP MJD statements.
 # If there are more than 1 possible solutions, they will be left in your folder as well.
