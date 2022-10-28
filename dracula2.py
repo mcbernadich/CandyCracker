@@ -80,6 +80,7 @@ def compatible(parFile,ref_pos,tol):
 	ref_ra=to_arcsec(ref_pos.split(",")[0],"hours")
 	ref_dec=to_arcsec(ref_pos.split(",")[1],"degrees")
 
+	print(1)
 	print(abs(ra-ref_ra)-3*dra,tol/np.cos(ref_ra*np.pi/648000),abs(dec-ref_dec)-3*ddec,tol)
 
 #	distance = solution.separation(reference)
