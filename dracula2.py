@@ -80,9 +80,6 @@ def compatible(parFile,ref_pos,tol):
 	ref_ra=to_arcsec(ref_pos.split(",")[0],"hours")
 	ref_dec=to_arcsec(ref_pos.split(",")[1],"degrees")
 
-#	print(abs(ra-ref_ra)-3*dra)
-	print(np.cos(ref_ra*np.pi/648000))
-
 #	distance = solution.separation(reference)
 
 	if ( abs(ra-ref_ra)-3*dra > tol/np.cos(ref_ra*np.pi/648000) ) or ( abs(dec-ref_dec)-3*ddec > tol ):
@@ -175,7 +172,7 @@ def add_jumps_and_fit(parFile,timFile,skipJumps,nFits):
 	return jumps,chi2r,time_intervals,phase_jumps_times
 
 # This removes one time jump and adds a phase jump in the PAR.
-def remove_jump_add_phase(parFile_jumps,phase_jump_times,jump_index,phase,max_chi2r,position_prior="00:00:00,00:00:00",position_tolerance="1296000"):
+def remove_jump_add_phase(parFile_jumps,phase_jump_times,jump_index,phase,max_chi2r,position_prior="00:00:00,00:00:00",position_tolerance=1296000):
 
 	par_read=open(parFile_jumps,"r")
 	if phase>=0:
@@ -276,7 +273,7 @@ def remove_jump_add_phase(parFile_jumps,phase_jump_times,jump_index,phase,max_ch
 	return chi2r,solution_exists
 
 #Identify from 3 chi2r values whether we are in a minimum or a slope, and then run until the valley within chi2r<2 is identified.
-def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_solutions,position_prior="00:00:00,00:00:00",position_tolerance="1296000"):
+def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_solutions,position_prior="00:00:00,00:00:00",position_tolerance=1296000):
 
 	print("")
 	print("Computing ramifications from solution "+parFile+".")
@@ -642,7 +639,7 @@ if (args.position_prior and args.position_tolerance):
 else:
 
 	position_prior="00:00:00,00:00:00"
-	position_tolerance="1296000"
+	position_tolerance=1296000
 
 #Loop over jumps.
 i=0+args.skip_jumps
