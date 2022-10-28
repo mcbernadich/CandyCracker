@@ -80,7 +80,7 @@ def compatible(parFile,ref_pos,tol):
 	ref_ra=to_arcsec(ref_pos.split(",")[0],"hours")
 	ref_dec=to_arcsec(ref_pos.split(",")[1],"degrees")
 
-	print(abs(ra-ref_ra)-3*dra)
+#	print(abs(ra-ref_ra)-3*dra)
 	print(tol/np.cos(ref_ra*np.pi/648000))
 	print(abs(dec-ref_dec)-3*ddec)
 	print(tol)
