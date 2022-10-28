@@ -58,12 +58,16 @@ def compatible(parFile,ref_pos,tol):
 		chunks = line.strip().split()
 		if chunks[0]=="RAJ":
 			ra=to_arcsec(chunks[1],"hours")
-			if len(chunks[0])>=3:
+			if len(chunks)>=3:
 				dra=float(chunks[3])
+			else:
+				dra=0.0
 		if chunks[0]=="DECJ":
 			dec=to_arcsec(chunks[1],"degrees")
-			if len(chunks[0])>=3:
+			if len(chunks)>=3:
 				ddec=float(chunks[3])
+			else:
+				ddec=0.0
 	par_read.close()
 
 	# Measure distance between sources.
