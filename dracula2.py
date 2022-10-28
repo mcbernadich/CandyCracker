@@ -168,7 +168,7 @@ def add_jumps_and_fit(parFile,timFile,skipJumps,nFits):
 	return jumps,chi2r,time_intervals,phase_jumps_times
 
 # This removes one time jump and adds a phase jump in the PAR.
-def remove_jump_add_phase(parFile_jumps,phase_jump_times,jump_index,phase,max_chi2r):
+def remove_jump_add_phase(parFile_jumps,phase_jump_times,jump_index,phase,max_chi2r,position_prior="00:00:00,00:00:00",position_tolerance="1296000"):
 
 	par_read=open(parFile_jumps,"r")
 	if phase>=0:
@@ -245,7 +245,7 @@ def remove_jump_add_phase(parFile_jumps,phase_jump_times,jump_index,phase,max_ch
 	# Read the resulting chi2. Preserve the par file only if chi2r<2.
 	subprocess.run(["mv",parFile_phases.split(".")[0]+"_solution_candidate.par",parFile_phases],stdout=subprocess.DEVNULL)
 	chi2r=read_chi2r_from_par(parFile_phases) #Preliminarily, read the chi2r from the parameter file
-	if chi2r<max_chi2r and solution_exists==True:
+	if chi2r<max_chi2r and solution_exists==True and compatible(parFile_phases,position_prior,position_tolerance):
 		chi2r=read_chi2r_from_logs(subrun.stdout.decode()) #Get the higher res version of the chi2r
 		# We remove the phase jump for the future use of the par file.
 		par_read=open(parFile_phases,"r")
@@ -269,7 +269,7 @@ def remove_jump_add_phase(parFile_jumps,phase_jump_times,jump_index,phase,max_ch
 	return chi2r,solution_exists
 
 #Identify from 3 chi2r values whether we are in a minimum or a slope, and then run until the valley within chi2r<2 is identified.
-def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_solutions):
+def find_chi2r_interval(parFile,phase_jump_times,jump_index,max_chi2r,max_solutions,position_prior="00:00:00,00:00:00",position_tolerance="1296000"):
 
 	print("")
 	print("Computing ramifications from solution "+parFile+".")
@@ -619,13 +619,23 @@ print("Jumps will be removed in this order:",ordering)
 print(phase_jumps_times[ordering])
 
 if args.skip_jumps:
-	print("This many jumps will be skipped at the beggining:",ordering[args.skip_jumps])
+	print("This many jumps will be skipped at the beggining:",args.skip_jumps)
 
 max_jump=n_jumps-1
 
 if args.up_to_jump:
 	max_jump=args.up_to_jump
 	print("The last fitted jump will be:",ordering[max_jump])
+
+if (args.position_prior and args.position_tolerance):
+
+	position_prior=args.position_prior
+	position_tolerance=args.position_tolerance
+
+else:
+
+	position_prior="00:00:00,00:00:00"
+	position_tolerance="1296000"
 
 #Loop over jumps.
 i=0+args.skip_jumps
@@ -651,17 +661,6 @@ while i<=max_jump:
 		print("")
 		print("Surviving PAR files from removing the previous jump:",parFiles)
 
-		if (args.position_prior and args.position_tolerance):
-
-			for file in parFiles:
-
-				if compatible(file,args.position_prior,args.position_tolerance)==False:
-
-					print("Removing",file,"because of uncompatible position.")
-					subprocess.run(["rm",file],stdout=subprocess.DEVNULL)
-
-			parFiles=glob.glob(parFile)
-
 		if args.max_files:
 
 			if len(parFiles) > args.max_files:
@@ -686,7 +685,7 @@ while i<=max_jump:
 			while j < nFiles:
 
 				multiprocesses=multi.Pool(processes=args.n_gulp)
-				dummy_array=multiprocesses.map(partial(find_chi2r_interval,phase_jump_times=phase_jumps_times,jump_index=ordering[i],max_chi2r=args.max_chi2r,max_solutions=args.max_solutions),parFiles_solving[j:j+args.n_gulp])
+				dummy_array=multiprocesses.map(partial(find_chi2r_interval,phase_jump_times=phase_jumps_times,jump_index=ordering[i],max_chi2r=args.max_chi2r,max_solutions=args.max_solutions),parFiles_solving[j:j+args.n_gulp],position_prior=position_prior,position_tolerance=position_tolerance)
 				j=j+args.n_gulp
 
 				multiprocesses.close()
